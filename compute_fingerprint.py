@@ -1,10 +1,12 @@
 __author__ = 'eilidhhendry'
 
-import nltk
 import csv
 import os
-import compute_function_dist
 import ast
+
+import nltk
+
+import compute_function_dist
 
 
 class ComputeFingerprint:
@@ -32,13 +34,13 @@ class ComputeFingerprint:
 
         # try to create the output directory
         try:
-            os.mkdir('../fingerprint_output')
+            os.mkdir('temp/fingerprint_output')
         except OSError:
             # already exists so skip
             pass
 
         # create output file in output folder, with name of input folder
-        output_file = open('../fingerprint_output/hemingway_imitation.csv', 'w')
+        output_file = open('temp/fingerprint_output/hemingway_imitation.csv', 'w')
 
         # create csv writer object and write the fieldnames to first row
         csv_writer = csv.writer(output_file, delimiter='\t')

@@ -11,7 +11,7 @@ import numpy as np
 
 def get_freqdist():
 
-    tagged_corpus = nltk.corpus.reader.CategorizedPlaintextCorpusReader('split_10000_data_tagged/', r'.*\.txt$', cat_pattern=r'(\w+)/*')
+    tagged_corpus = nltk.corpus.reader.CategorizedPlaintextCorpusReader('training_data/split_10000_data_tagged/', r'.*\.txt$', cat_pattern=r'(\w+)/*')
     untagged_corpus = nltk.corpus.reader.CategorizedPlaintextCorpusReader('split_10000_data/', r'.*\.txt$', cat_pattern=r'(\w+)/*')
     taglist = 'PRP PRP$ WP WP$ CC MD UH RP IN TO WDT DT PDT'.split()
     output_file = open('function_word_counts/1000_split_function_counts.txt', 'w')
@@ -208,7 +208,7 @@ def function_words(input_filename):
 
     file_dict = {}
 
-    with open('/Users/eilidhhendry/PycharmProjects/author-similarity/function_word_counts/function_test_counts.txt') as infile:
+    with open('temp/function_word_counts/function_test_counts.txt') as infile:
         for line in infile:
             filename, tuple_list = line.split('\t')
             if filename.strip() == input_filename:

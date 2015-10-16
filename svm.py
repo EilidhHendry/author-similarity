@@ -28,20 +28,6 @@ def read_data(in_file):
     :return: X_scaled - scaled matrix of input data, y - the target
     """
     # read the file into a pandas array
-    with open(in_file) as text:
-        count = 1
-        for line in text:
-            word_count = 0
-            if count == 3:
-                break
-            else:
-                words = line.split('\t')
-                for word in words:
-                    print word
-                    word_count += 1
-                count +=1
-                print word_count
-
     data = pandas.read_csv(in_file, sep='\t', index_col=False)
     print data
 
@@ -92,75 +78,6 @@ def test(test_file, clf):
     #result = clf.decision_function(X_test)
     #print result
     #print result
-
-
-def feature_selction_1(X_train, y_train, clf):
-
-    # Create a feature-selection transform and an instance of SVM that we
-    # combine together to have an full-blown estimator
-
-    transform = feature_selection.SelectPercentile(feature_selection.f_classif)
-
-    clf = pipeline.Pipeline([('anova', transform), ('svc', clf)])
-
-    # Plot the cross-validation score as a function of percentile of features
-    score_means = list()
-    score_stds = list()
-    percentiles = (1, 3, 6, 10, 15, 20, 30, 40, 60, 80, 100)
-
-    for percentile in percentiles:
-        clf.set_params(anova__percentile=percentile)
-        this_scores = cross_validation.cross_val_score(clf, X_train, y_train)
-        score_means.append(this_scores.mean())
-        score_stds.append(this_scores.std())
-
-    plot.errorbar(percentiles, score_means, numpy.array(score_stds))
-
-    plot.title(
-        'Performance of the SVM-Anova varying the percentile of features selected')
-    plot.xlabel('Percentile')
-    plot.ylabel('Prediction rate')
-
-    plot.axis('tight')
-    plot.show()
-
-def feature_selection_2(X_train, y_train):
-    X_indices = numpy.arange((X_train.shape[-1]))
-
-    # Univariate feature selection with F-test for feature scoring
-    # We use the default selection function: the 10% most significant features
-    selector = feature_selection.SelectPercentile(feature_selection.f_classif, percentile=50)
-    selector.fit(X_train, y_train)
-    scores = -numpy.log10(selector.pvalues_)
-    scores /= scores.max()
-    plot.bar(X_indices - .45, scores, width=.2,
-            label=r'Univariate score ($-Log(p_{value})$)', color='g')
-
-    # Compare to the weights of an SVM
-    clf = svm.SVC(kernel='linear')
-    clf.fit(X_train, y_train)
-
-    svm_weights = (clf.coef_ ** 2).sum(axis=0)
-    svm_weights /= svm_weights.max()
-
-    plot.bar(X_indices - .25, svm_weights, width=.2, label='SVM weight', color='r')
-
-    clf_selected = svm.SVC(kernel='linear')
-    clf_selected.fit(selector.transform(X_train), y_train)
-
-    svm_weights_selected = (clf_selected.coef_ ** 2).sum(axis=0)
-    svm_weights_selected /= svm_weights_selected.max()
-
-    plot.bar(X_indices[selector.get_support()] - .05, svm_weights_selected,
-            width=.2, label='SVM weights after selection', color='b')
-
-    plot.title("Comparing feature selection")
-    plot.xlabel('Feature number')
-    plot.yticks(())
-    plot.axis('tight')
-    plot.legend(loc='upper right')
-    plot.show()
-
 
 def train_svm(training_file):
     # read in the training data
@@ -251,19 +168,12 @@ def train_svm2(training_file):
     return clf
 
 if __name__ == '__main__':
-    training_file = "../fingerprint_output/training_fingerprints.csv"
-    welch_test_file = "feature_output/split/all_welch_test.txt"
-    hemingway_test_file ="../fingerprint_output/hemingway_imitation.txt"
-    all_welch_test_file = "feature_output/final/all_welch.txt"
+    training_file = "temp/fingerprint_output/training_fingerprints.csv"
+    hemingway_test_file ="temp/fingerprint_output/hemingway_imitation.csv"
     clf = train_svm(training_file)
 
 
     print 'TEST ON HEMINGWAY DATASET'
     test(hemingway_test_file, clf)
 
-    print 'TEST ON WELCH DATASET'
-    test(welch_test_file, clf)
-
-    print 'ALL WELCH'
-    test(all_welch_test_file, clf)
 
