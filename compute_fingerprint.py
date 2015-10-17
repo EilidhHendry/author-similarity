@@ -6,8 +6,6 @@ import ast
 
 import nltk
 
-import compute_function_dist
-
 
 class ComputeFingerprint:
 
@@ -77,7 +75,7 @@ class ComputeFingerprint:
                 """
 
                 # get the function word distrubution and add to list
-                function_counts = compute_function_dist.function_words(text_name)
+                function_counts = self.function_words(text_name)
                 row = row + function_counts
 
                 # get the pos counts and add to list
@@ -143,6 +141,34 @@ class ComputeFingerprint:
                 result.append(normalised[tag])
             else:
                 result.append(0)
+        return result
+
+    def function_words(self, input_filename):
+        word_list = ['the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
+                     'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
+                     'up', 'what', 'me', 'no', 'like', 'would', 'if', 'about', 'which', 'them', 'into', 'who', 'could',
+                     'can', 'some', 'their', 'over', 'down', 'your', 'will', 'its', 'any', 'through', 'after', 'off', 'than',
+                     'our', 'us', 'around', 'these', 'because', 'must', 'before', 'those', '&', 'should', 'himself', 'both',
+                     'against', 'may', 'might', 'shall', 'since', 'de', 'within', 'between', 'each', 'under', 'until', 'toward',
+                     'another', 'myself']
+
+        file_dict = {}
+
+        with open('temp/function_word_counts/function_test_counts.txt') as infile:
+            for line in infile:
+                filename, tuple_list = line.split('\t')
+                if filename.strip() == input_filename:
+                    tuple_line = ast.literal_eval(tuple_list)
+                    for word, count in tuple_line:
+                        if word in word_list:
+                            file_dict[word] = count
+        result = []
+        for word in word_list:
+            if word in file_dict:
+                result.append(file_dict[word])
+            else:
+                result.append(0)
+
         return result
 
 if __name__ == '__main__':
