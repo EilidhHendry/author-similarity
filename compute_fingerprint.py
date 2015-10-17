@@ -106,23 +106,6 @@ class ComputeFingerprint:
         punc = [char for char in raw_corpus if char in punctuation_marks]
         return len(punc)
 
-    def readabilities(self, corpus, filename):
-        rd = readability.Readability(corpus.raw(fileids=[filename]))
-        readability_dict = {
-        'ARI': rd.ARI(),
-        'flesch_reading_ease': rd.FleschReadingEase(),
-        'flesch_kincaid_grade_level': rd.FleschKincaidGradeLevel(),
-        'gunning_fog_index': rd.GunningFogIndex(),
-        'SMOG_Index': rd.SMOGIndex(),
-        'coleman_liau_index': rd.ColemanLiauIndex(),
-        'LIX': rd.LIX(),
-        'RIX': rd.RIX()}
-        return readability_dict
-
-    def avg_num_syllables(self, corpus, filename):
-        syllable_count = utils.count_syllables(corpus.words(fileids=filename))
-        num_words = len(corpus.words(fileids=filename))
-        return float(syllable_count)/num_words
 
     def get_pos_counts(self, tagged_corpus, corpus, filename):
         pos_corpus = tagged_corpus.raw(fileids=filename)

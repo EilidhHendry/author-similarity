@@ -4,7 +4,6 @@ import argparse
 import pandas
 import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics, feature_selection, pipeline
-import matplotlib.pyplot as plot
 
 
 def option_parser():
@@ -41,18 +40,6 @@ def read_data(in_file):
     scaler = preprocessing.StandardScaler()
     X_scaled = scaler.fit_transform(X)
     return X_scaled, y
-
-def plot_confusion_matrix(cm, y, title='Confusion matrix', cmap=plot.cm.Blues):
-    plot.imshow(cm, interpolation='nearest', cmap=cmap)
-    plot.title(title)
-    plot.colorbar()
-    tick_marks = numpy.arange(len(numpy.unique(y)))
-    plot.xticks(tick_marks, numpy.unique(y), rotation=45)
-    plot.gca().invert_xaxis()
-    plot.yticks(tick_marks, numpy.unique(y))
-    plot.tight_layout()
-    plot.ylabel('True label')
-    plot.xlabel('Predicted label')
 
 
 def test(test_file, clf):
@@ -102,23 +89,6 @@ def train_svm(training_file):
     scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-    """
-    f1_scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5, scoring='roc_auc')
-    print("F1-Weighted: %0.2f (+/- %0.2f)" % (f1_scores.mean(), f1_scores.std() * 2))
-
-    avg_precision_scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5, scoring='average_precision')
-    print("F1-Weighted: %0.2f (+/- %0.2f)" % (avg_precision_scores.mean(), avg_precision_scores.std() * 2))
-    """
-
-    # calculate confusion matrix
-    cm = metrics.confusion_matrix(y_true, y_pred)
-    # normalise
-    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, numpy.newaxis]
-    # create plot of confusion matrix
-    plot.figure()
-    plot_confusion_matrix(cm_normalized, y_true, title='Normalized confusion matrix')
-    plot.show()
-
     return clf
 
 def train_svm2(training_file):
@@ -147,23 +117,6 @@ def train_svm2(training_file):
 
     scores = cross_validation.cross_val_score(pipe, X_test, y_test, cv=5)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-
-    """
-    f1_scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5, scoring='roc_auc')
-    print("F1-Weighted: %0.2f (+/- %0.2f)" % (f1_scores.mean(), f1_scores.std() * 2))
-
-    avg_precision_scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5, scoring='average_precision')
-    print("F1-Weighted: %0.2f (+/- %0.2f)" % (avg_precision_scores.mean(), avg_precision_scores.std() * 2))
-    """
-
-    # calculate confusion matrix
-    cm = metrics.confusion_matrix(y_true, y_pred)
-    # normalise
-    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, numpy.newaxis]
-    # create plot of confusion matrix
-    plot.figure()
-    plot_confusion_matrix(cm_normalized, y_true, title='Normalized confusion matrix')
-    plot.show()
 
     return clf
 
