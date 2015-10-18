@@ -10,6 +10,8 @@ import nltk
 class ComputeFingerprint:
 
     def __init__(self):
+        plain_dir = 'test_data/plain_test/hemingway_imitation'
+        tagged_dir = 'test_data/tagged_test/hemingway_imitation'
         fieldnames = ['target', 'avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation',
                       'the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
                       'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
@@ -20,7 +22,7 @@ class ComputeFingerprint:
                       'another', 'myself' 'PRP$', 'VBG', 'VBD', 'VBN',
                       'POS', 'VBP', 'WDT', 'JJ', 'WP', 'VBZ', 'DT', 'RP', 'NN', 'FW', 'TO', 'PRP', 'RB', 'NNS', 'NNP',
                       'VB', 'WRB', 'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', 'EX', 'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
-        self.main('/Users/eilidhhendry/PycharmProjects/author-similarity/test_data/plain_test/hemingway_imitation', '/Users/eilidhhendry/PycharmProjects/author-similarity/test_data/tagged_test/hemingway_imitation', fieldnames)
+        self.main(plain_dir, tagged_dir, fieldnames)
 
     def main(self, plain_dir, tagged_dir, fieldnames):
 
