@@ -3,5 +3,3 @@
 *.pyc
 *.sw*
 venv/
-training_data/
-test_data/
