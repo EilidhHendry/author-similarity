@@ -1,6 +1,7 @@
 .idea/
-training_data/
-test_data/
 .DS_Store
 *.pyc
 *.sw*
+venv/
+training_data/
+test_data/
