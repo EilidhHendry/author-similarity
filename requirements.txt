@@ -1,3 +1,4 @@
+Django==1.8.5
 numpy==1.10.1
 pandas==0.17.0
 python-dateutil==2.4.2
