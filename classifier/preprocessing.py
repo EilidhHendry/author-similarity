@@ -1,11 +1,11 @@
 import string
+import nltk
+import os
 
 def preprocess(author_name, book_title, input_filename):
     with open(input_filename) as input_text:
-        split_texts = split_text(input_text, book_title)
-
-
-
+        # splits the input text into chunks and writes each chunk to a new file
+        split_text(input_text, book_title)
 
 def split_text(input_file, book_title, chunk_size=10000):
     current_chunk = []
@@ -38,6 +38,32 @@ def split_text(input_file, book_title, chunk_size=10000):
     output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
+def tag_texts(input_dir):
+
+    # takes a directory containing subdirectories for each author
+    # creates categories from subdirectory names
+    corpus = nltk.corpus.reader.CategorizedPlaintextCorpusReader(input_dir, r'.*\.txt$', cat_pattern=r'(\w+)/*')
+
+    # try to create the output directory
+    try:
+        os.mkdir('tagged_dir')
+    except OSError:
+        # already exists so skip
+        pass
+
+    # loop through all the categories (authors)
+    for category in corpus.categories():
+
+        # loop through all the files (texts) in the current category (authors)
+        for filename in corpus.fileids(category):
+
+            # print current text to terminal
+            print filename
+
+            output_file = open('tagged_dir/'+filename, 'w')
+
+            pos_corpus = nltk.pos_tag(corpus.words(fileids=filename))
+            print>>output_file, pos_corpus
 
 if __name__== '__main__':
     with open('README.md') as input_file:
