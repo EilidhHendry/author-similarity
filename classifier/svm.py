@@ -1,9 +1,8 @@
 __author__ = 'eilidhhendry'
 
-import argparse
 import pandas
 import numpy
-from sklearn import preprocessing, cross_validation, svm, grid_search, metrics, feature_selection, pipeline
+from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib
 
 def read_data(fingerprint_file):

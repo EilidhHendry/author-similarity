@@ -1,5 +1,4 @@
 import string
-import os
 
 def preprocess(author_name, book_title, input_filename):
     with open(input_filename) as input_text:
