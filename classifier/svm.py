@@ -41,15 +41,26 @@ def test(test_file, clf):
     print 'wallace:', numpy.mean(test_outcome=='wallace'), len([1 for item in test_outcome if item=='wallace'])
     """
 
-def cross_validate_svm(classifier):
-    print 'Best parameters set found on development set:'
-    print classifier.best_params_
+def evaluate_svm(classifier, test_data, test_targets):
+    """
+    Evaluates the svm on the task of author identification.
+    Compares actual targets and predicted targets to find precision, recall and f-score.
+    Also, uses k-fold cross-validation to find an accuracy for the classifier.
 
-    y_true, y_pred = y_test, classifier.predict(X_test)
+    :param classifier: a trained classifier
+    :param test_data: matrix of numerical test data
+    :param test_targets: list of the target author for each row in matrix
+    """
+
+    
+    # list of actual targets for the test set, and get predicted targets using classifier
+    actual_targets, predicted_targets = test_targets, classifier.predict(test_data)
+    # compare actual targets and predicated targets
     print 'detailed class report:'
-    print metrics.classification_report(y_true, y_pred)
+    print metrics.classification_report(actual_targets, predicted_targets)
 
-    scores = cross_validation.cross_val_score(classifier, X_test, y_test, cv=5)
+    # use 5-fold cross validation to find average accuracy of classifier on test set
+    scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 # We train the SVM every time a new text/author is added to the system
