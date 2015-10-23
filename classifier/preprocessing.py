@@ -3,7 +3,7 @@ import os
 import nltk
 
 
-def split_text_sentences(input_path, output_path, book_title, chunk_size=10000):
+def split_text(input_path, output_path, book_title, chunk_size=10000):
 
     output_directory = output_path+'/'+book_title
     try:
@@ -51,7 +51,7 @@ def split_text_sentences(input_path, output_path, book_title, chunk_size=10000):
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
+    output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
 # for testing
@@ -67,5 +67,5 @@ def word_count(input_file):
 
 if __name__ == '__main__':
 
-    split_text_sentences('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
+    split_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
 
