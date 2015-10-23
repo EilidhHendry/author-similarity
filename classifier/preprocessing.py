@@ -3,39 +3,48 @@ import os
 import nltk
 
 
-def split_text_sentences(input_file, book_title, chunk_size=10000):
+def split_text_sentences(input_path, output_path, book_title, chunk_size=10000):
+
+    output_directory = output_path+'/'+book_title
+    try:
+        os.mkdir(output_directory)
+    except:
+        pass
 
      # get the directory name and text name from file path
-    text_path = os.path.dirname(input_file)
-    text_name = os.path.basename(input_file)
+    text_path = os.path.dirname(input_path)
+    text_name = os.path.basename(input_path)
 
+    # create an nltk corpus from the input file
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, text_name)
 
-    print len(corpus.words())
-
+    # tokenise into sentences
     sentences = corpus.sents()
 
     current_chunk = []
     current_chunk_word_count = 0
     file_count = 0
     for sentence in sentences:
-
-        new_sentence = []
+        # add the sentence to the current chunk and remove non-ascii characters
+        current_chunk = current_chunk + [word.encode('ascii', 'ignore') for word in sentence]
         for word in sentence:
-            new_sentence.append(word.encode('ascii', 'ignore'))
 
-        current_chunk = current_chunk + new_sentence
-        for word in new_sentence:
+            # increment the word count if not whitespace
             if word not in string.whitespace:
                 current_chunk_word_count += 1
 
             if current_chunk_word_count == chunk_size:
+
+                # convert list of words to string
                 chunk = ' '.join(current_chunk)
-                # create new file with 0 padding
-                output_file = open('test/acrosstheriverandintothetrees/'+book_title+"{0:02d}.txt".format(file_count),'w')
+
+                # create new file in the output directory with 0 padding
+                output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
                 file_count+=1
+
                 # print the current chunk to file
                 print>>output_file, chunk
+
                 # start over for the next chunk
                 current_chunk = []
                 current_chunk_word_count = 0
@@ -45,37 +54,7 @@ def split_text_sentences(input_file, book_title, chunk_size=10000):
     output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
-def split_text(input_file, book_title, chunk_size=10000):
-    current_chunk = []
-    current_chunk_word_count = 0
-    file_count = 0
-
-    for line in input_file:
-        words = line.split()
-
-        for word in words:
-            # preserve spaces without affecting word count
-            current_chunk.append(word)
-
-            if word not in string.whitespace:
-                current_chunk_word_count += 1
-
-            if current_chunk_word_count == chunk_size:
-                chunk = ' '.join(current_chunk)
-                # create new file with 0 padding
-                output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
-                file_count+=1
-                # print the current chunk to file
-                print>>output_file, chunk
-                # start over for the next chunk
-                current_chunk = []
-                current_chunk_word_count = 0
-
-    # print the remaining text to a new file
-    final_chunk = ' '.join(current_chunk)
-    output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
-    print>>output_file, final_chunk
-
+# for testing
 def word_count(input_file):
     word_counts = 0
     with open(input_file) as file_content:
@@ -87,19 +66,6 @@ def word_count(input_file):
     print word_counts
 
 if __name__ == '__main__':
-    try:
-        os.mkdir('test/acrosstheriverandintothetrees')
-    except:
-        pass
 
-    split_text_sentences('test/acrosstheriverandintothetrees.txt', 'acrosstheriverandintothetrees', chunk_size=10000)
+    split_text_sentences('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
 
-    for subdir, dirs, files in os.walk('test/acrosstheriverandintothetrees/'):
-        for file in files:
-            word_count('test/acrosstheriverandintothetrees/'+file)
-
-    print '--------------'
-
-    for subdir, dirs, files in os.walk('test_data/acrosstheriverandintothetrees/'):
-        for file in files:
-            word_count('test_data/acrosstheriverandintothetrees/' + file)
