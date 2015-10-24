@@ -117,7 +117,7 @@ def create_csv(book_title):
                   'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
 
     # create output file in output folder, with name of input folder
-    output_file = open('temp/fingerprint_output/'+book_title+'.csv', 'w')
+    output_file = open('data/fingerprint_output/'+book_title+'.csv', 'w')
 
     # create csv writer object and write the fieldnames to first row
     csv_writer = csv.writer(output_file, delimiter='\t')

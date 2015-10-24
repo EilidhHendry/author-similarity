@@ -92,11 +92,11 @@ def load_classifier(classifier_file_path):
     return classifier
 
 if __name__ == '__main__':
-    training_file = "temp/fingerprint_output/training_fingerprints.csv"
-    hemingway_test_file ="temp/fingerprint_output/hemingway_imitation.csv"
+    training_file = "data/fingerprint_output/training_fingerprints.csv"
+    hemingway_test_file ="data/fingerprint_output/hemingway_imitation.csv"
     clf = train_svm(training_file)
 
-    model_output_file = "temp/model/model.pkl"
+    model_output_file = "data/model/model.pkl"
     store_classifier(clf, model_output_file)
 
     classifier = load_classifier(model_output_file)
