@@ -1,70 +1,71 @@
 import string
-import nltk
 import os
+import nltk
 
-def preprocess(author_name, book_title, input_filename):
-    with open(input_filename) as input_text:
-        # splits the input text into chunks and writes each chunk to a new file
-        split_text(input_text, book_title)
 
-def split_text(input_file, book_title, chunk_size=10000):
+def split_text(input_path, output_path, book_title, chunk_size=10000):
+
+    output_directory = output_path+'/'+book_title
+    try:
+        os.mkdir(output_directory)
+    except:
+        pass
+
+     # get the directory name and text name from file path
+    text_path = os.path.dirname(input_path)
+    text_name = os.path.basename(input_path)
+
+    # create an nltk corpus from the input file
+    corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, text_name)
+
+    # tokenise into sentences
+    sentences = corpus.sents()
+
     current_chunk = []
     current_chunk_word_count = 0
     file_count = 0
+    for sentence in sentences:
+        # add the sentence to the current chunk and remove non-ascii characters
+        current_chunk = current_chunk + [word.encode('ascii', 'ignore') for word in sentence]
+        for word in sentence:
 
-    for line in input_file:
-        words = line.split()
-
-        for word in words:
-            # preserve spaces without affecting word count
-            current_chunk.append(word)
-
+            # increment the word count if not whitespace
             if word not in string.whitespace:
                 current_chunk_word_count += 1
 
             if current_chunk_word_count == chunk_size:
+
+                # convert list of words to string
                 chunk = ' '.join(current_chunk)
-                # create new file with 0 padding
-                output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
+
+                # create new file in the output directory with 0 padding
+                output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
                 file_count+=1
+
                 # print the current chunk to file
                 print>>output_file, chunk
+
                 # start over for the next chunk
                 current_chunk = []
                 current_chunk_word_count = 0
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(book_title+"{0:02d}.txt".format(file_count),'w')
+    output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
-def tag_texts(input_dir):
+# for testing
+def word_count(input_file):
+    word_counts = 0
+    with open(input_file) as file_content:
+        for line in file_content:
+            words = line.split()
+            for word in words:
+                if word not in string.whitespace:
+                    word_counts +=1
+    print word_counts
 
-    # takes a directory containing subdirectories for each author
-    # creates categories from subdirectory names
-    corpus = nltk.corpus.reader.CategorizedPlaintextCorpusReader(input_dir, r'.*\.txt$', cat_pattern=r'(\w+)/*')
+if __name__ == '__main__':
 
-    # try to create the output directory
-    try:
-        os.mkdir('tagged_dir')
-    except OSError:
-        # already exists so skip
-        pass
+    split_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
 
-    # loop through all the categories (authors)
-    for category in corpus.categories():
-
-        # loop through all the files (texts) in the current category (authors)
-        for filename in corpus.fileids(category):
-
-            # print current text to terminal
-            print filename
-
-            output_file = open('tagged_dir/'+filename, 'w')
-
-            pos_corpus = nltk.pos_tag(corpus.words(fileids=filename))
-            print>>output_file, pos_corpus
-
-if __name__== '__main__':
-    with open('README.md') as input_file:
-        print split_text(input_file, 'README', chunk_size=10)
