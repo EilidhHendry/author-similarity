@@ -54,17 +54,6 @@ def split_text(input_path, output_path, book_title, chunk_size=10000):
     output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
-# for testing
-def word_count(input_file):
-    word_counts = 0
-    with open(input_file) as file_content:
-        for line in file_content:
-            words = line.split()
-            for word in words:
-                if word not in string.whitespace:
-                    word_counts +=1
-    print word_counts
-
 if __name__ == '__main__':
 
     split_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
