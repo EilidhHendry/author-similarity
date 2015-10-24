@@ -3,7 +3,7 @@ import os
 import nltk
 
 
-def split_text(input_path, output_path, book_title, chunk_size=10000):
+def chunk_text(input_path, output_path, book_title, chunk_size=10000):
 
     output_directory = output_path+'/'+book_title
     try:
@@ -56,5 +56,4 @@ def split_text(input_path, output_path, book_title, chunk_size=10000):
 
 if __name__ == '__main__':
 
-    split_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
-
+    chunk_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
