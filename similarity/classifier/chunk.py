@@ -1,13 +1,26 @@
 import string
 import os
 import nltk
+text_directory_path = "data/texts"
+chunk_directory_path = "data/chunks"
 
+def generate_directory_name(name):
+    directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
+    return directory_name
 
-def chunk_text(input_path, output_path, book_title, chunk_size=10000):
+def generate_chunk_path(author, title):
+    output_directory = chunk_directory_path + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+    return output_directory
 
-    output_directory = output_path+'/'+book_title
+def generate_text_path(author, title):
+    output_directory = text_directory_path + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
+    return output_directory
+
+def chunk_text(input_path, author, title, chunk_size=10000):
+    chunk_output_directory = generate_chunk_path(author, title)
+
     try:
-        os.mkdir(output_directory)
+        os.makedirs(chunk_output_directory)
     except:
         pass
 
@@ -39,7 +52,7 @@ def chunk_text(input_path, output_path, book_title, chunk_size=10000):
                 chunk = ' '.join(current_chunk)
 
                 # create new file in the output directory with 0 padding
-                output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
+                output_file = open(chunk_output_directory+"{0:02d}.txt".format(file_count),'w')
                 file_count+=1
 
                 # print the current chunk to file
@@ -51,9 +64,11 @@ def chunk_text(input_path, output_path, book_title, chunk_size=10000):
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(output_directory+'/'+book_title+"{0:02d}.txt".format(file_count),'w')
+    output_file = open(chunk_output_directory+"{0:02d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
 if __name__ == '__main__':
-
-    chunk_text('test/acrosstheriverandintothetrees.txt', 'test/', 'acrosstheriverandintothetrees', chunk_size=10000)
+    author = 'hemingway'
+    title = 'across the river and into the trees'
+    text_output_path = generate_text_path(author, title)
+    chunk_text('temp/acrosstheriverandintothetrees.txt', author, title, chunk_size=10000)
