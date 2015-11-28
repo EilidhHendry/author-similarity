@@ -7,14 +7,14 @@ class Text(models.Model):
     author = models.ForeignKey('Author')
 
     name = models.CharField(max_length=200)
+    text_file = models.FileField(default=None, null=True, blank=True)
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author')
 
     text = models.ForeignKey('Text')
     text_chunk_number = models.IntegerField(null=True)
-
-    chunk_file_path = models.CharField(max_length=200)
+    chunk_file = models.FileField(default=None, null=True, blank=True)
 
     # fingerprint
     # todo: Find a better way to store all this nonsense
