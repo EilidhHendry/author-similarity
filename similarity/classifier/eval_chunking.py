@@ -98,8 +98,8 @@ def eval_chunk(chunk_size, repetitions):
     csv_writer.writerow([chunk_size] + min_times + [total_time, accuracy])
 
 def repeat_eval():
-    repetitions = 1
-    chunk_sizes = [1000000]
+    repetitions = 3
+    chunk_sizes = [100000]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
         try:
@@ -110,20 +110,17 @@ def repeat_eval():
 
 def delete_files():
     root_path = 'data'
-    for dirs in walkdir.dir_paths(walkdir.exclude_dirs(os.walk(root_path), 'texts')):
+    for dirs in walkdir.dir_paths(walkdir.filtered_walk(root_path, excluded_dirs=['texts'])):
         if len(dirs.split('/'))>2:
             shutil.rmtree(dirs)
-    for dir_name, _, files in walkdir.exclude_dirs(walkdir.exclude_dirs(walkdir.exclude_files(walkdir.filtered_walk(root_path), '.gitignore'), 'texts'), 'chunk_eval_results'):
+    for dir_name, _, files in walkdir.filtered_walk(root_path, excluded_dirs=['texts', 'model'], excluded_files=['.gitignore']):
         for file in files:
             file_path = os.path.join(dir_name, file)
             os.remove(file_path)
 
 if __name__ == "__main__":
-    delete_files()
-    """
     print time.ctime()
     repeat_eval()
     print time.ctime()
-    """
 
 
