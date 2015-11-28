@@ -31,8 +31,7 @@ def read_csv(fingerprint_file):
 
 def train_csv(fingerprint_file):
     training_data, targets = read_csv(fingerprint_file)
-    clf, test_data, test_targets = train_svm(training_data, targets)
-    return clf, test_data, test_targets
+    return train_svm(training_data, targets)
 
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_data, targets):
@@ -74,13 +73,16 @@ def classify(test_file, clf):
     # read csv file, split into numerical testing data and targets
     testing_data, targets = read_csv(test_file)
 
+    # grab probabilities for each author in the system
+    test_probs = clf.predict_proba(testing_data)
+    print test_probs
+
+    """
     # predict the test set
     test_outcomes = clf.predict(testing_data)
-
     # print the results
     for index, prediction in enumerate(test_outcomes):
         print index, 'target: ', targets[index], 'pred: ', prediction
-    """
     print 'hemingway: ', numpy.mean(test_outcome=='hemingway'), len([1 for item in test_outcome if item=='hemingway'])
     print 'nabokov: ', numpy.mean(test_outcome=='nabokov'), len([1 for item in test_outcome if item=='nabokov'])
     print 'steinbeck: ', numpy.mean(test_outcome=='steinbeck'), len([1 for item in test_outcome if item=='steinbeck'])
@@ -117,16 +119,18 @@ def svm_accuracy(classifier, test_data, test_targets):
 
 
 if __name__ == '__main__':
-    read_csv("data/fingerprint_output/training_fingerprints.csv")
+    fingerprint_file = "data/combined_fingerprint/combined_fingerprints.csv"
+    test_path = "data/fingerprint_output/steinbeck/eastofeden/02.csv"
 
-    """
-    training_file = "data/fingerprint_output/training_fingerprints.csv"
-    hemingway_test_file ="data/fingerprint_output/hemingway_imitation.csv"
-    clf = train_svm(training_file)
+    # Parse combined finger print
+    training_data, targets = read_csv(fingerprint_file)
+    # Train the classifier
+    clf, _, _ = train_svm(training_data, targets)
 
+    # Store the classifier, and load again for fun
     model_output_file = "data/model/model.pkl"
     store_classifier(clf, model_output_file)
+    clf = load_classifier(model_output_file)
 
-    classifier = load_classifier(model_output_file)
-    test(hemingway_test_file, classifier)
-    """
+    # Make predictions about authorship
+    classify(test_path, clf)
