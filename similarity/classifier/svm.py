@@ -29,6 +29,10 @@ def read_csv(fingerprint_file):
 
     return target_data, training_data
 
+def train_csv(fingerprint_file):
+    training_data, targets = read_csv(fingerprint_file)
+    clf, test_data, test_targets = train_svm(training_data, targets)
+    return clf, test_data, test_targets
 
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_data, targets):
