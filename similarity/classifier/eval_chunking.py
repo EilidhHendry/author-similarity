@@ -8,7 +8,7 @@ import time
 
 def create_csv():
     # create output file in output folder, with name of input folder
-    output_file = open('temp/chunk_results.csv', 'w')
+    output_file = open('data/chunk_eval_results/chunk_eval_results.csv', 'w')
 
     # create csv writer object
     csv_writer = csv.writer(output_file, delimiter='\t')
