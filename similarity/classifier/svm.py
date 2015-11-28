@@ -63,6 +63,10 @@ def evaluate_svm(classifier, test_data, test_targets):
     scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
+def svm_accuracy(classifier, test_data, test_targets):
+    scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
+    return scores.mean()
+
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_file):
     # read in the training data
@@ -82,7 +86,7 @@ def train_svm(training_file):
     clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
     clf.fit(X_train, y_train)
 
-    return clf
+    return clf, X_test, y_test
 
 def store_classifier(classifier, output_file_path):
     joblib.dump(classifier, output_file_path)
@@ -92,6 +96,9 @@ def load_classifier(classifier_file_path):
     return classifier
 
 if __name__ == '__main__':
+    read_data("data/fingerprint_output/training_fingerprints.csv")
+
+    """
     training_file = "data/fingerprint_output/training_fingerprints.csv"
     hemingway_test_file ="data/fingerprint_output/hemingway_imitation.csv"
     clf = train_svm(training_file)
@@ -101,3 +108,4 @@ if __name__ == '__main__':
 
     classifier = load_classifier(model_output_file)
     test(hemingway_test_file, classifier)
+    """
