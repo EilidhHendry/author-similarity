@@ -60,8 +60,8 @@ def time_combine(fingerprints_path, repetitions):
     return time
 
 def time_svm(input_csv, repetitions):
-    svm_command = "train_svm(\'" + input_csv + "\')"
-    setup_command = "from svm import train_svm"
+    svm_command = "train_csv(\'" + input_csv + "\')"
+    setup_command = "from svm import train_csv"
     time = timeit.repeat(stmt=svm_command, setup=setup_command, repeat=repetitions, number=1)
     return time
 
