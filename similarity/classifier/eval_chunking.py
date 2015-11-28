@@ -24,21 +24,24 @@ def chunk_dir(root_path, chunk_size):
     # files: list of files in the current directory.
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
-            if file != '.gitignore':
+            if file[0] != '.':
                 author = dir_name.split('/')[-1]
                 title = file.split('.')[0]
                 current_file_path = os.path.join(dir_name, file)
+                print current_file_path
                 chunk.chunk_text(current_file_path, author, title, chunk_size=chunk_size)
 
 def compute_all_fingerprints(root_path):
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
-            if file != '.gitignore':
+            if file[0] != '.':
                 author = dir_name.split('/')[-2]
                 title = dir_name.split('/')[-1]
+                print "%s - %s" % (author, title)
                 compute_fingerprint.compute_fingerprint(author, title, file)
 
 def time_chunking(root_path, chunk_size, repetitions):
+    # TODO - string formatting
     chunk_command = "chunk_dir(\'" + root_path + "\', " + str(chunk_size) + ")"
     setup_command = "from __main__ import chunk_dir"
     time = timeit.repeat(stmt=chunk_command, setup=setup_command, repeat=repetitions, number=1)
@@ -75,9 +78,13 @@ def eval_chunk(chunk_size, repetitions):
 
     csv_writer = create_csv()
 
+    print "chunking"
     chunk_times = time_chunking(plaintext_path, chunk_size, repetitions)
+    print "fingerprinting"
     compute_fingerprint_times = time_compute_all_fingerprints(chunks_path, repetitions)
+    print "combining"
     combine_times = time_combine(fingerprints_path, repetitions)
+    print "training"
     svm_times = time_svm(combined_fingerprint_path, repetitions)
 
     min_times = [min(times) for times in [chunk_times, compute_fingerprint_times, combine_times, svm_times]]
@@ -90,7 +97,9 @@ def eval_chunk(chunk_size, repetitions):
 
 def repeat_eval():
     repetitions = 3
-    for chunk_size in [10000]:
+    chunk_sizes = [5000, 10000, 50000, 100000]
+    for chunk_size in chunk_sizes:
+        print "Trying chunk size %i" % (chunk_size)
         eval_chunk(chunk_size, repetitions)
 
 if __name__ == "__main__":
