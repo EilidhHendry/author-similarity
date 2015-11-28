@@ -1,26 +1,45 @@
 from django.db import models
 
+def generate_directory_name(name):
+    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
+    return directory_name
+
 class Author(models.Model):
     name = models.CharField(max_length=200)
 
     def __unicode__(self):
         return u'%s' % (self.name)
 
+
+def create_text_upload_path(self, filename):
+    author_name = generate_directory_name(self.author.name)
+    text_name = generate_directory_name(self.name)
+    path = "texts/" + "/".join([author_name, text_name])
+    return path
+
 class Text(models.Model):
     author = models.ForeignKey('Author')
 
     name = models.CharField(max_length=200)
-    text_file = models.FileField(default=None, null=True, blank=True)
+    text_file = models.FileField(upload_to=create_text_upload_path, default=None, null=True, blank=True)
 
     def __unicode__(self):
         return u'%s' % (self.name)
+
+
+def create_chunk_upload_path(self, filename):
+    author_name = generate_directory_name(self.author.name)
+    text_name = generate_directory_name(self.text.name)
+    chunk_number = "{0:03d}.txt".format(self.text_chunk_number)
+    path = "chunks/" + "/".join([author_name, text_name, chunk_number])
+    return path
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author')
 
     text = models.ForeignKey('Text')
     text_chunk_number = models.IntegerField(null=True)
-    chunk_file = models.FileField(default=None, null=True, blank=True)
+    chunk_file = models.FileField(upload_to=create_chunk_upload_path, default=None, null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%i)' % (self.text, self.text_chunk_number)
