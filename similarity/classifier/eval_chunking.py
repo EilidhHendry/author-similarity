@@ -5,6 +5,8 @@ import os
 import csv
 import timeit
 import time
+import walkdir
+import shutil
 
 def create_csv():
     # create output file in output folder, with name of input folder
@@ -96,13 +98,32 @@ def eval_chunk(chunk_size, repetitions):
     csv_writer.writerow([chunk_size] + min_times + [total_time, accuracy])
 
 def repeat_eval():
-    repetitions = 3
-    chunk_sizes = [5000, 10000, 50000, 100000]
+    repetitions = 1
+    chunk_sizes = [1000000]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
-        eval_chunk(chunk_size, repetitions)
+        try:
+            eval_chunk(chunk_size, repetitions)
+            delete_files()
+        except:
+            delete_files()
+
+def delete_files():
+    root_path = 'data'
+    for dirs in walkdir.dir_paths(walkdir.exclude_dirs(os.walk(root_path), 'texts')):
+        if len(dirs.split('/'))>2:
+            shutil.rmtree(dirs)
+    for dir_name, _, files in walkdir.exclude_dirs(walkdir.exclude_dirs(walkdir.exclude_files(walkdir.filtered_walk(root_path), '.gitignore'), 'texts'), 'chunk_eval_results'):
+        for file in files:
+            file_path = os.path.join(dir_name, file)
+            os.remove(file_path)
 
 if __name__ == "__main__":
+    delete_files()
+    """
     print time.ctime()
     repeat_eval()
     print time.ctime()
+    """
+
+
