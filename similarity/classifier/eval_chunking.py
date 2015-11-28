@@ -1,0 +1,99 @@
+import chunk
+import compute_fingerprint
+import svm
+import os
+import csv
+import timeit
+import time
+
+def create_csv():
+    # create output file in output folder, with name of input folder
+    output_file = open('temp/chunk_results.csv', 'w')
+
+    # create csv writer object
+    csv_writer = csv.writer(output_file, delimiter='\t')
+
+    # write the fieldnames to the first row
+    fieldnames = ['chunk size', 'time to chunk', 'time to compute fingerprint', 'time to combine', 'time to train', 'total time', 'accuracy']
+    csv_writer.writerow(fieldnames)
+    return csv_writer
+
+def chunk_dir(root_path, chunk_size):
+    # dir_name: the current dir looking in
+    # sub_dirs: list of sub-directories in the current directory.
+    # files: list of files in the current directory.
+    for dir_name, sub_dirs, files in os.walk(root_path):
+        for file in files:
+            if file != '.gitignore':
+                author = dir_name.split('/')[-1]
+                title = file.split('.')[0]
+                current_file_path = os.path.join(dir_name, file)
+                chunk.chunk_text(current_file_path, author, title, chunk_size=chunk_size)
+
+def compute_all_fingerprints(root_path):
+    for dir_name, sub_dirs, files in os.walk(root_path):
+        for file in files:
+            if file != '.gitignore':
+                author = dir_name.split('/')[-2]
+                title = dir_name.split('/')[-1]
+                compute_fingerprint.compute_fingerprint(author, title, file)
+
+def time_chunking(root_path, chunk_size, repetitions):
+    chunk_command = "chunk_dir(\'" + root_path + "\', " + str(chunk_size) + ")"
+    setup_command = "from __main__ import chunk_dir"
+    time = timeit.repeat(stmt=chunk_command, setup=setup_command, repeat=repetitions, number=1)
+    return time
+
+def time_compute_all_fingerprints(root_path, repetitions):
+    compute_fingerprint_command = "compute_all_fingerprints(\'" + root_path + "\')"
+    setup_command = "from __main__ import compute_all_fingerprints"
+    time = timeit.repeat(stmt=compute_fingerprint_command, setup=setup_command, repeat=repetitions, number=1)
+    return time
+
+def time_combine(fingerprints_path, repetitions):
+    combine_command = "combine_chunks(\'" + fingerprints_path + "\')"
+    setup_command = "from combine_chunks import combine_chunks"
+    time = timeit.repeat(stmt=combine_command, setup=setup_command, repeat=repetitions, number=1)
+    return time
+
+def time_svm(input_csv, repetitions):
+    svm_command = "train_svm(\'" + input_csv + "\')"
+    setup_command = "from svm import train_svm"
+    time = timeit.repeat(stmt=svm_command, setup=setup_command, repeat=repetitions, number=1)
+    return time
+
+def find_accuracy(fingerprint):
+    clf, test_data, test_targets = svm.train_svm(fingerprint)
+    accuracy = svm.svm_accuracy(clf, test_data, test_targets)
+    return accuracy
+
+def eval_chunk(chunk_size, repetitions):
+    plaintext_path = 'data/texts'
+    chunks_path = 'data/chunks'
+    fingerprints_path = 'data/fingerprint_output'
+    combined_fingerprint_path = 'data/combined_fingerprint/combined_fingerprints.csv'
+
+    csv_writer = create_csv()
+
+    chunk_times = time_chunking(plaintext_path, chunk_size, repetitions)
+    compute_fingerprint_times = time_compute_all_fingerprints(chunks_path, repetitions)
+    combine_times = time_combine(fingerprints_path, repetitions)
+    svm_times = time_svm(combined_fingerprint_path, repetitions)
+
+    min_times = [min(times) for times in [chunk_times, compute_fingerprint_times, combine_times, svm_times]]
+
+    total_time = sum(min_times)
+
+    accuracy = find_accuracy(combined_fingerprint_path)
+
+    csv_writer.writerow([chunk_size] + min_times + [total_time, accuracy])
+
+def repeat_eval():
+    repetitions = 3
+    for chunk_size in [10000]:
+        eval_chunk(chunk_size, repetitions)
+
+if __name__ == "__main__":
+    print time.ctime()
+    repeat_eval()
+    print time.ctime()
