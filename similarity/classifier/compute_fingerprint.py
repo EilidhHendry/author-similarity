@@ -2,17 +2,18 @@ import os
 import nltk
 import csv
 
-def compute_fingerprint(author_name, book_title, input_chunk):
+def compute_fingerprint(author_name, book_title, chunk_name):
 
-    # create csv writer object, output file and write headers to file
-    csv_writer = create_csv(book_title)
+    root_dir = 'data/chunks/'
 
     # get the directory name and text name from file path
-    text_path = os.path.dirname(input_chunk)
-    text_name = os.path.basename(input_chunk)
+    text_path = root_dir + author_name + "/" + book_title + "/"
+
+    # create csv writer object, output file and write headers to file
+    csv_writer = create_csv(author_name, book_title, chunk_name)
 
     # create an nltk corpus from the current chunk
-    corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, text_name)
+    corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
 
     # find the length of the current chunk to be used for normalisation
     text_length = len(corpus.words())
@@ -104,7 +105,7 @@ def get_function_word_distribution(tagged_text, text_length):
     return ordered_func_word_distributions
 
 
-def create_csv(book_title):
+def create_csv(author_name, book_title, file_name):
     fieldnames = ['target', 'avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation',
                   'the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
                   'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
@@ -116,8 +117,16 @@ def create_csv(book_title):
                   'NN', 'FW', 'TO', 'PRP', 'RB', 'NNS', 'NNP', 'VB', 'WRB', 'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', 'EX',
                   'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
 
+    output_dir = 'data/fingerprint_output/'
+
     # create output file in output folder, with name of input folder
-    output_file = open('data/fingerprint_output/'+book_title+'.csv', 'w')
+    try:
+        os.makedirs(output_dir+author_name+'/'+book_title)
+    except:
+        pass
+
+    file_number = file_name.split('.')[0]
+    output_file = open(output_dir+author_name+'/'+book_title+'/'+file_number+'.csv', 'w')
 
     # create csv writer object and write the fieldnames to first row
     csv_writer = csv.writer(output_file, delimiter='\t')
@@ -126,4 +135,4 @@ def create_csv(book_title):
 
 if __name__ == '__main__':
 
-    compute_fingerprint('hemingway', 'acrosstheriverandintothetrees', 'test_data/acrosstheriverandintothetrees/acrosstheriverandintothetrees0.txt')
+    compute_fingerprint('hemingway', 'acrosstheriverandintothetrees', 'data/chunks/hemingway/acrosstheriverandintothetrees/00.txt')
