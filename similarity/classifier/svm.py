@@ -24,8 +24,9 @@ def read_csv(fingerprint_file):
     num_data = data.ix[:,1:]
 
     # get the training data and the targets
-    training_data = num_data.as_matrix().astype(numpy.float)
-    target_data = data['target']
+    training_data = num_data.as_matrix()
+
+    target_data = data['target'].tolist()
 
     return training_data, target_data
 
@@ -129,6 +130,7 @@ if __name__ == '__main__':
 
     # Store the classifier, and load again for fun
     model_output_file = "data/model/model.pkl"
+
     store_classifier(clf, model_output_file)
     clf = load_classifier(model_output_file)
 
