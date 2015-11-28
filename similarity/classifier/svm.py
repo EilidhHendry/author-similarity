@@ -5,13 +5,19 @@ import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib
 
-def read_data(fingerprint_file):
+
+def scale(training_data):
+    scaler = preprocessing.StandardScaler()
+    training_data_scaled = scaler.fit_transform(training_data)
+    return training_data_scaled
+
+
+def read_csv(fingerprint_file):
     """
-    Reads input file and creates matrix of numerical data and targets.
-    :param fingerprint_file: input File (not string)
-    :return: X_scaled - scaled matrix of input data, y - the target
+    Reads input csv file and creates matrix of numerical data and targets.
     """
-    # read the file into a pandas array
+
+    # read the csv file into a pandas array
     data = pandas.read_csv(fingerprint_file, sep='\t', index_col=False)
 
     # get the numerical data
@@ -20,20 +26,56 @@ def read_data(fingerprint_file):
     # get the training data and the targets
     training_data = num_data.as_matrix().astype(numpy.float)
     target_data = data['target']
-    # scale the data
-    scaler = preprocessing.StandardScaler()
-    training_data_scaled = scaler.fit_transform(training_data)
-    return training_data_scaled, target_data
 
-def test(test_file, clf):
-    testing_data, testing_labels = read_data(test_file)
+    return target_data, training_data
+
+
+# We train the SVM every time a new text/author is added to the system
+def train_svm(training_data, targets):
+
+    #scale the input data
+    scaled_training_data = scale(training_data)
+
+    #Split the data into training and validation set
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
+
+    print "Feature space holds %d observations and %d features" % X_train.shape
+    c_range = numpy.logspace(-2,2,40)
+
+    print 'Tuning hyperparameters for precision'
+    param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
+    cv = 5
+    scoring = "f1_weighted"
+
+    clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
+    clf.fit(X_train, y_train)
+
+    return clf, X_test, y_test
+
+
+def store_classifier(classifier, output_file_path):
+    joblib.dump(classifier, output_file_path)
+
+
+def load_classifier(classifier_file_path):
+    classifier = joblib.load(classifier_file_path)
+    return classifier
+
+
+def classify(test_file, clf):
+    """
+    Classify test data using trained classifier. Prints list of target and corresponding prediction.
+    """
+
+    # read csv file, split into numerical testing data and targets
+    testing_data, targets = read_csv(test_file)
 
     # predict the test set
     test_outcomes = clf.predict(testing_data)
 
     # print the results
     for index, prediction in enumerate(test_outcomes):
-        print index, 'target: ', testing_labels[index], 'pred: ', prediction
+        print index, 'target: ', targets[index], 'pred: ', prediction
     """
     print 'hemingway: ', numpy.mean(test_outcome=='hemingway'), len([1 for item in test_outcome if item=='hemingway'])
     print 'nabokov: ', numpy.mean(test_outcome=='nabokov'), len([1 for item in test_outcome if item=='nabokov'])
@@ -52,7 +94,6 @@ def evaluate_svm(classifier, test_data, test_targets):
     :param test_targets: list of the target author for each row in matrix
     """
 
-    
     # list of actual targets for the test set, and get predicted targets using classifier
     actual_targets, predicted_targets = test_targets, classifier.predict(test_data)
     # compare actual targets and predicated targets
@@ -63,40 +104,16 @@ def evaluate_svm(classifier, test_data, test_targets):
     scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
+
 def svm_accuracy(classifier, test_data, test_targets):
+    # find the accuracy of the classifier using 5-fold cross-validation
     scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
+    # return the mean of the 5 folds
     return scores.mean()
 
-# We train the SVM every time a new text/author is added to the system
-def train_svm(training_file):
-    # read in the training data
-    X, y = read_data(training_file)
-
-    #Split the data into training and validation set
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.5, random_state=0)
-
-    print "Feature space holds %d observations and %d features" % X_train.shape
-    c_range = numpy.logspace(-2,2,40)
-
-    print 'Tuning hyperparameters for precision'
-    param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
-    cv = 5
-    scoring = "f1_weighted"
-
-    clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
-    clf.fit(X_train, y_train)
-
-    return clf, X_test, y_test
-
-def store_classifier(classifier, output_file_path):
-    joblib.dump(classifier, output_file_path)
-
-def load_classifier(classifier_file_path):
-    classifier = joblib.load(classifier_file_path)
-    return classifier
 
 if __name__ == '__main__':
-    read_data("data/fingerprint_output/training_fingerprints.csv")
+    read_csv("data/fingerprint_output/training_fingerprints.csv")
 
     """
     training_file = "data/fingerprint_output/training_fingerprints.csv"
