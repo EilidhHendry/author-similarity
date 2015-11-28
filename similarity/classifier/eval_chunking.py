@@ -66,7 +66,7 @@ def time_svm(input_csv, repetitions):
     return time
 
 def find_accuracy(fingerprint):
-    clf, test_data, test_targets = svm.train_svm(fingerprint)
+    clf, test_data, test_targets = svm.train_csv(fingerprint)
     accuracy = svm.svm_accuracy(clf, test_data, test_targets)
     return accuracy
 

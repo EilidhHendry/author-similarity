@@ -27,7 +27,7 @@ def read_csv(fingerprint_file):
     training_data = num_data.as_matrix().astype(numpy.float)
     target_data = data['target']
 
-    return target_data, training_data
+    return training_data, target_data
 
 def train_csv(fingerprint_file):
     training_data, targets = read_csv(fingerprint_file)
