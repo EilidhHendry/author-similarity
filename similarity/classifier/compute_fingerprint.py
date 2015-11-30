@@ -1,10 +1,11 @@
+import constants
 import os
 import nltk
 import csv
 
 def compute_fingerprint(author_name, book_title, chunk_name):
 
-    root_dir = 'data/chunks/'
+    root_dir = constants.CHUNKS_PATH
 
     # get the directory name and text name from file path
     text_path = root_dir + author_name + "/" + book_title + "/"
@@ -117,7 +118,7 @@ def create_csv(author_name, book_title, file_name):
                   'NN', 'FW', 'TO', 'PRP', 'RB', 'NNS', 'NNP', 'VB', 'WRB', 'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', 'EX',
                   'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
 
-    output_dir = 'data/fingerprint_output/'
+    output_dir = constants.FINGERPRINTS_PATH
 
     # create output file in output folder, with name of input folder
     try:

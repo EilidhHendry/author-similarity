@@ -1,10 +1,10 @@
 __author__ = 'eilidhhendry'
 
 import os
+import constants
 
 def combine_chunks(root_path):
-    output_path = 'data/combined_fingerprint/'
-    output_file = open(output_path +'combined_fingerprints.csv', 'w')
+    output_file = open(constants.COMBINED_FINGERPRINT_FILE_PATH, 'w')
     first_iteration = True
 
     for dir_name, sub_dirs, files in os.walk(root_path):
@@ -22,6 +22,5 @@ def combine_chunks(root_path):
 
 
 if __name__ == '__main__':
-    root_path = 'data/fingerprint_output'
-    output_path = 'data/fingerprint_output/'
-    combine_chunks(root_path)
+    fingerprint_path = constants.FINGERPRINTS_PATH
+    combine_chunks(fingerprint_path)

@@ -83,13 +83,13 @@ def eval_chunk(chunk_size, repetitions):
     print "combining"
     combine_times = time_combine(constants.FINGERPRINTS_PATH, repetitions)
     print "training"
-    svm_times = time_svm(constants.COMBINED_FINGERPRINT_PATH, repetitions)
+    svm_times = time_svm(constants.COMBINED_FINGERPRINT_FILE_PATH, repetitions)
 
     min_times = [min(times) for times in [chunk_times, compute_fingerprint_times, combine_times, svm_times]]
 
     total_time = sum(min_times)
 
-    accuracy = find_accuracy(constants.COMBINED_FINGERPRINT_PATH)
+    accuracy = find_accuracy(constants.COMBINED_FINGERPRINT_FILE_PATH)
 
     csv_writer.writerow([chunk_size] + min_times + [total_time, accuracy])
 

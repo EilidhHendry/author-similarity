@@ -1,19 +1,18 @@
+import constants
 import string
 import os
 import nltk
-text_directory_path = "data/texts"
-chunk_directory_path = "data/chunks"
 
 def generate_directory_name(name):
     directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
     return directory_name
 
 def generate_chunk_path(author, title):
-    output_directory = chunk_directory_path + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+    output_directory = constants.CHUNKS_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
     return output_directory
 
 def generate_text_path(author, title):
-    output_directory = text_directory_path + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
+    output_directory = constants.PLAINTEXT_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
 
 def chunk_text(input_path, author, title, chunk_size=10000):
