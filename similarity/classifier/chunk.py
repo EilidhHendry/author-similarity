@@ -51,7 +51,7 @@ def chunk_text(input_path, author, title, chunk_size=10000):
                 chunk = ' '.join(current_chunk)
 
                 # create new file in the output directory with 0 padding
-                output_file = open(chunk_output_directory+"{0:02d}.txt".format(file_count),'w')
+                output_file = open(chunk_output_directory+"{0:03d}.txt".format(file_count),'w')
                 file_count+=1
 
                 # print the current chunk to file
@@ -63,7 +63,7 @@ def chunk_text(input_path, author, title, chunk_size=10000):
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(chunk_output_directory+"{0:02d}.txt".format(file_count),'w')
+    output_file = open(chunk_output_directory+"{0:03d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
 if __name__ == '__main__':
