@@ -53,7 +53,7 @@ def analyze_text(input_chunk):
 
 
 def count_punctuation(chars):
-    punctuation_marks = ['!',',','.',':','"','?','-',';','(',')','[',']','\\','/']
+    punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/']
     punc = [char for char in chars if char in punctuation_marks]
     return len(punc)
 
