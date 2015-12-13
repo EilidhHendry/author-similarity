@@ -11,7 +11,7 @@ import shutil
 
 def create_csv():
     # create output file in output folder, with name of input folder
-    output_file = open('data/chunk_eval_results/chunk_eval_results.csv', 'w')
+    output_file = open('data/chunk_eval_results/chunk_eval_results.csv', 'a')
 
     # create csv writer object
     csv_writer = csv.writer(output_file, delimiter='\t')
@@ -40,7 +40,8 @@ def compute_all_fingerprints(root_path):
             if file[0] != '.':
                 author = dir_name.split('/')[-2]
                 title = dir_name.split('/')[-1]
-                print "%s - %s" % (author, title)
+                current_file_path = os.path.join(dir_name, file)
+                print current_file_path
                 compute_fingerprint.compute_fingerprint(author, title, file)
 
 def time_chunking(root_path, chunk_size, repetitions):
@@ -73,8 +74,7 @@ def find_accuracy(fingerprint):
     accuracy = svm.svm_accuracy(clf, test_data, test_targets)
     return accuracy
 
-def eval_chunk(chunk_size, repetitions):
-    csv_writer = create_csv()
+def eval_chunk(chunk_size, repetitions, csv_writer):
 
     print "chunking"
     chunk_times = time_chunking(constants.PLAINTEXT_PATH, chunk_size, repetitions)
@@ -94,12 +94,13 @@ def eval_chunk(chunk_size, repetitions):
     csv_writer.writerow([chunk_size] + min_times + [total_time, accuracy])
 
 def repeat_eval():
+    csv_writer = create_csv()
     repetitions = 1
-    chunk_sizes = [20000]
+    chunk_sizes = [5000, 10000, 20000, 40000, 80000, 160000]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
-        eval_chunk(chunk_size, repetitions)
         delete_files()
+        eval_chunk(chunk_size, repetitions, csv_writer)
 
 
 def delete_files():
@@ -116,6 +117,3 @@ if __name__ == "__main__":
     print time.ctime()
     repeat_eval()
     print time.ctime()
-
-
-
