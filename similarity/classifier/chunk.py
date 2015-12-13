@@ -63,8 +63,22 @@ def chunk_text(input_path, author, title, chunk_size=10000):
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(chunk_output_directory+"{0:03d}.txt".format(file_count),'w')
+    output_file = open(chunk_output_directory+"{0:04d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
+
+def chunk_dir(root_path, chunk_size):
+    # dir_name: the current dir looking in
+    # sub_dirs: list of sub-directories in the current directory.
+    # files: list of files in the current directory.
+    for dir_name, sub_dirs, files in os.walk(root_path):
+        for file in files:
+            if file[0] != '.':
+                author = dir_name.split('/')[-1]
+                title = file.split('.')[0]
+                current_file_path = os.path.join(dir_name, file)
+                print current_file_path
+                chunk_text(current_file_path, author, title, chunk_size=chunk_size)
+
 
 if __name__ == '__main__':
     author = 'hemingway'

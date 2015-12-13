@@ -22,5 +22,4 @@ def combine_chunks(root_path):
 
 
 if __name__ == '__main__':
-    fingerprint_path = constants.FINGERPRINTS_PATH
-    combine_chunks(fingerprint_path)
+    combine_chunks(constants.FINGERPRINTS_PATH)
