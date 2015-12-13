@@ -3,17 +3,21 @@ import string
 import os
 import nltk
 
+
 def generate_directory_name(name):
     directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
     return directory_name
+
 
 def generate_chunk_path(author, title):
     output_directory = constants.CHUNKS_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
     return output_directory
 
+
 def generate_text_path(author, title):
     output_directory = constants.PLAINTEXT_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
+
 
 def chunk_text(input_path, author, title, chunk_size=10000):
     chunk_output_directory = generate_chunk_path(author, title)
@@ -68,7 +72,7 @@ def chunk_text(input_path, author, title, chunk_size=10000):
 
     # print the remaining text to a new file
     final_chunk = ' '.join(current_chunk)
-    output_file = open(chunk_output_directory+"{0:03d}.txt".format(file_count),'w')
+    output_file = open(chunk_output_directory+"{0:04d}.txt".format(file_count),'w')
     print>>output_file, final_chunk
 
 
@@ -85,3 +89,24 @@ def join_punctuation(word_list):
             yield current_word
             current_word = next_word
     yield current_word
+
+
+def chunk_dir(root_path, chunk_size):
+    # dir_name: the current dir looking in
+    # sub_dirs: list of sub-directories in the current directory.
+    # files: list of files in the current directory.
+    for dir_name, sub_dirs, files in os.walk(root_path):
+        for file in files:
+            if file[0] != '.':
+                author = dir_name.split('/')[-1]
+                title = file.split('.')[0]
+                current_file_path = os.path.join(dir_name, file)
+                print current_file_path
+                chunk_text(current_file_path, author, title, chunk_size=chunk_size)
+
+
+if __name__ == '__main__':
+    author = 'hemingway'
+    title = 'across the river and into the trees'
+    text_output_path = generate_text_path(author, title)
+    chunk_text('temp/acrosstheriverandintothetrees.txt', author, title, chunk_size=10000)

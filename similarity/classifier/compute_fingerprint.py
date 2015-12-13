@@ -144,6 +144,15 @@ def create_csv(author_name, book_title, file_name):
     csv_writer.writerow(fieldnames)
     return csv_writer
 
+def compute_all_fingerprints(root_path):
+    for dir_name, sub_dirs, files in os.walk(root_path):
+        for file in files:
+            if file[0] != '.':
+                author = dir_name.split('/')[-2]
+                title = dir_name.split('/')[-1]
+                print "%s - %s" % (author, title)
+                compute_fingerprint(author, title, file)
+
 if __name__ == '__main__':
 
     compute_fingerprint('hemingway', 'acrosstheriverandintothetrees', 'data/chunks/hemingway/acrosstheriverandintothetrees/00.txt')
