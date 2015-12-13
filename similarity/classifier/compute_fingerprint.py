@@ -3,15 +3,13 @@ import os
 import nltk
 import csv
 
-def compute_fingerprint(author_name, book_title, chunk_name):
+
+def compute_fingerprint(author_name, book_title, chunk_name, csv=False):
 
     root_dir = constants.CHUNKS_PATH
 
     # get the directory name and text name from file path
     text_path = root_dir + author_name + "/" + book_title + "/"
-
-    # create csv writer object, output file and write headers to file
-    csv_writer = create_csv(author_name, book_title, chunk_name)
 
     # create an nltk corpus from the current chunk
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
@@ -32,8 +30,20 @@ def compute_fingerprint(author_name, book_title, chunk_name):
     # get normalised pos distributions
     pos_distribution = get_pos_counts(pos_current_text, text_length)
 
+    fingerprint_list = [author_name]+simple_stats+function_word_distribution+pos_distribution
+
+    if csv:
+        fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name)
+    else:
+        return fingerprint_list
+
+def fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name):
+    # create csv writer object, output file and write headers to file
+    csv_writer = create_csv(author_name, book_title, chunk_name)
+
     # write current text to csv file
-    csv_writer.writerow([author_name]+simple_stats+function_word_distribution+pos_distribution)
+    csv_writer.writerow(fingerprint_list)
+
 
 
 def analyze_text(input_chunk):
