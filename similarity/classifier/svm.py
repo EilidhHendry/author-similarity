@@ -7,6 +7,7 @@ from sklearn.externals import joblib
 
 import constants
 
+
 def scale(training_data):
     scaler = preprocessing.StandardScaler()
     training_data_scaled = scaler.fit_transform(training_data)
@@ -31,9 +32,11 @@ def read_csv(fingerprint_file):
 
     return training_data, target_data
 
+
 def train_csv(fingerprint_file):
     training_data, targets = read_csv(fingerprint_file)
     return train_svm(training_data, targets)
+
 
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_data, targets):
@@ -79,17 +82,6 @@ def classify(test_file, clf):
     test_probs = clf.predict_proba(testing_data)
     print test_probs
 
-    """
-    # predict the test set
-    test_outcomes = clf.predict(testing_data)
-    # print the results
-    for index, prediction in enumerate(test_outcomes):
-        print index, 'target: ', targets[index], 'pred: ', prediction
-    print 'hemingway: ', numpy.mean(test_outcome=='hemingway'), len([1 for item in test_outcome if item=='hemingway'])
-    print 'nabokov: ', numpy.mean(test_outcome=='nabokov'), len([1 for item in test_outcome if item=='nabokov'])
-    print 'steinbeck: ', numpy.mean(test_outcome=='steinbeck'), len([1 for item in test_outcome if item=='steinbeck'])
-    print 'wallace:', numpy.mean(test_outcome=='wallace'), len([1 for item in test_outcome if item=='wallace'])
-    """
 
 def evaluate_svm(classifier, test_data, test_targets):
     """

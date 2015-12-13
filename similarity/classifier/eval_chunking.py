@@ -74,7 +74,7 @@ def eval_chunk(chunk_size, repetitions, csv_writer):
 def repeat_eval():
     csv_writer = create_csv()
     repetitions = 1
-    chunk_sizes = [32000]
+    chunk_sizes = [constants.CHUNK_SIZE]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
         delete_files()

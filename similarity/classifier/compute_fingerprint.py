@@ -34,8 +34,9 @@ def compute_fingerprint(author_name, book_title, chunk_name, csv=False):
 
     if csv:
         fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name)
-    else:
-        return fingerprint_list
+
+    return fingerprint_list
+
 
 def fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name):
     # create csv writer object, output file and write headers to file
@@ -43,7 +44,6 @@ def fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name):
 
     # write current text to csv file
     csv_writer.writerow(fingerprint_list)
-
 
 
 def analyze_text(input_chunk):
