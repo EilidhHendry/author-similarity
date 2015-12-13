@@ -5,6 +5,7 @@ import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib
 
+import constants
 
 def scale(training_data):
     scaler = preprocessing.StandardScaler()
@@ -120,19 +121,14 @@ def svm_accuracy(classifier, test_data, test_targets):
 
 
 if __name__ == '__main__':
-    fingerprint_file = "data/combined_fingerprint/combined_fingerprints.csv"
-    test_path = "data/fingerprint_output/steinbeck/eastofeden/02.csv"
-
     # Parse combined finger print
-    training_data, targets = read_csv(fingerprint_file)
+    training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
     # Train the classifier
     clf, _, _ = train_svm(training_data, targets)
-
     # Store the classifier, and load again for fun
-    model_output_file = "data/model/model.pkl"
-
-    store_classifier(clf, model_output_file)
-    clf = load_classifier(model_output_file)
+    store_classifier(clf, constants.MODEL_PATH)
+    clf = load_classifier(constants.MODEL_PATH)
 
     # Make predictions about authorship
+    test_path = "data/fingerprint_output/steinbeck/eastofeden/0002.csv"
     classify(test_path, clf)
