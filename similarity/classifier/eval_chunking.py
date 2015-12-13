@@ -42,7 +42,7 @@ def compute_all_fingerprints(root_path):
                 title = dir_name.split('/')[-1]
                 current_file_path = os.path.join(dir_name, file)
                 print current_file_path
-                compute_fingerprint.compute_fingerprint(author, title, file)
+                compute_fingerprint.compute_fingerprint(author, title, file, csv=True)
 
 def time_chunking(root_path, chunk_size, repetitions):
     # TODO - string formatting
@@ -96,7 +96,7 @@ def eval_chunk(chunk_size, repetitions, csv_writer):
 def repeat_eval():
     csv_writer = create_csv()
     repetitions = 1
-    chunk_sizes = [5000, 10000, 20000, 40000, 80000, 160000]
+    chunk_sizes = [40000]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
         delete_files()
