@@ -1,13 +1,14 @@
-import chunk
-import compute_fingerprint
-import svm
-import constants
 import os
 import csv
 import timeit
 import time
 import walkdir
 import shutil
+
+import chunk
+import compute_fingerprint
+import svm
+import constants
 
 def create_csv():
     # create output file in output folder, with name of input folder
@@ -21,39 +22,16 @@ def create_csv():
     csv_writer.writerow(fieldnames)
     return csv_writer
 
-def chunk_dir(root_path, chunk_size):
-    # dir_name: the current dir looking in
-    # sub_dirs: list of sub-directories in the current directory.
-    # files: list of files in the current directory.
-    for dir_name, sub_dirs, files in os.walk(root_path):
-        for file in files:
-            if file[0] != '.':
-                author = dir_name.split('/')[-1]
-                title = file.split('.')[0]
-                current_file_path = os.path.join(dir_name, file)
-                print current_file_path
-                chunk.chunk_text(current_file_path, author, title, chunk_size=chunk_size)
-
-def compute_all_fingerprints(root_path):
-    for dir_name, sub_dirs, files in os.walk(root_path):
-        for file in files:
-            if file[0] != '.':
-                author = dir_name.split('/')[-2]
-                title = dir_name.split('/')[-1]
-                current_file_path = os.path.join(dir_name, file)
-                print current_file_path
-                compute_fingerprint.compute_fingerprint(author, title, file)
-
 def time_chunking(root_path, chunk_size, repetitions):
     # TODO - string formatting
     chunk_command = "chunk_dir(\'" + root_path + "\', " + str(chunk_size) + ")"
-    setup_command = "from __main__ import chunk_dir"
+    setup_command = "from chunk import chunk_dir"
     time = timeit.repeat(stmt=chunk_command, setup=setup_command, repeat=repetitions, number=1)
     return time
 
 def time_compute_all_fingerprints(root_path, repetitions):
     compute_fingerprint_command = "compute_all_fingerprints(\'" + root_path + "\')"
-    setup_command = "from __main__ import compute_all_fingerprints"
+    setup_command = "from compute_fingerprint import compute_all_fingerprints"
     time = timeit.repeat(stmt=compute_fingerprint_command, setup=setup_command, repeat=repetitions, number=1)
     return time
 
@@ -96,7 +74,7 @@ def eval_chunk(chunk_size, repetitions, csv_writer):
 def repeat_eval():
     csv_writer = create_csv()
     repetitions = 1
-    chunk_sizes = [5000, 10000, 20000, 40000, 80000, 160000]
+    chunk_sizes = [32000]
     for chunk_size in chunk_sizes:
         print "Trying chunk size %i" % (chunk_size)
         delete_files()
