@@ -3,23 +3,22 @@ import string
 import os
 import nltk
 
-
 def generate_directory_name(name):
     directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
     return directory_name
 
 
 def generate_chunk_path(author, title):
-    output_directory = constants.CHUNKS_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
     return output_directory
 
 
 def generate_text_path(author, title):
-    output_directory = constants.PLAINTEXT_PATH + "/" + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
+    output_directory = constants.PLAINTEXT_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
 
 
-def chunk_text(input_path, author, title, chunk_size=10000):
+def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
     chunk_output_directory = generate_chunk_path(author, title)
 
     try:
@@ -95,18 +94,24 @@ def chunk_dir(root_path, chunk_size):
     # dir_name: the current dir looking in
     # sub_dirs: list of sub-directories in the current directory.
     # files: list of files in the current directory.
+    to_chunk = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':
                 author = dir_name.split('/')[-1]
                 title = file.split('.')[0]
-                current_file_path = os.path.join(dir_name, file)
-                print current_file_path
-                chunk_text(current_file_path, author, title, chunk_size=chunk_size)
+                path = os.path.join(dir_name, file)
+                to_chunk.append((path, author, title))
 
+    if (constants.PARALLEL):
+        import celery
+        import tasks
+        group = celery.group((tasks.chunk_text.s(current_file_path, author, title, chunk_size) for (current_file_path, author, title) in to_chunk))
+        result = group()
+        result.get()
+    else:
+        for (current_file_path, author, title) in to_chunk:
+            chunk_text(current_file_path, author, title, chunk_size)
 
 if __name__ == '__main__':
-    author = 'hemingway'
-    title = 'across the river and into the trees'
-    text_output_path = generate_text_path(author, title)
-    chunk_text('temp/acrosstheriverandintothetrees.txt', author, title, chunk_size=10000)
+    chunk_dir(constants.PLAINTEXT_PATH, constants.CHUNK_SIZE)

@@ -9,3 +9,5 @@ COMBINED_FINGERPRINT_FILE_PATH = 'data/combined_fingerprint/combined_fingerprint
 CHUNK_SIZE = 32000
 
 MODEL_PATH = "data/model/model.pkl"
+
+PARALLEL = False

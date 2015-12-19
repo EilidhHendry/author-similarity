@@ -3,8 +3,7 @@ import os
 import nltk
 import csv
 
-
-def compute_fingerprint(author_name, book_title, chunk_name, csv=False):
+def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
 
     root_dir = constants.CHUNKS_PATH
 
@@ -32,7 +31,7 @@ def compute_fingerprint(author_name, book_title, chunk_name, csv=False):
 
     fingerprint_list = [author_name]+simple_stats+function_word_distribution+pos_distribution
 
-    if csv:
+    if write_to_csv:
         fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name)
 
     return fingerprint_list
@@ -145,14 +144,23 @@ def create_csv(author_name, book_title, file_name):
     return csv_writer
 
 def compute_all_fingerprints(root_path):
+    to_fingerprint = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':
                 author = dir_name.split('/')[-2]
                 title = dir_name.split('/')[-1]
-                print "%s - %s" % (author, title)
-                compute_fingerprint(author, title, file)
+                to_fingerprint.append((author, title, file))
+
+    if (constants.PARALLEL):
+        import celery
+        import tasks
+        group = celery.group((tasks.compute_fingerprint.s(author, title, file) for (author, title, file) in to_fingerprint))
+        result = group()
+        result.get()
+    else:
+        for (author, title, file) in to_fingerprint:
+            compute_fingerprint(author, title, file)
 
 if __name__ == '__main__':
-
-    compute_fingerprint('hemingway', 'acrosstheriverandintothetrees', 'data/chunks/hemingway/acrosstheriverandintothetrees/00.txt')
+    compute_all_fingerprints(constants.CHUNKS_PATH)
