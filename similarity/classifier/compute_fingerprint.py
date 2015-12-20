@@ -3,6 +3,8 @@ import os
 import nltk
 import csv
 
+pronounciation_dict = nltk.corpus.cmudict.dict()
+
 def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
 
     root_dir = constants.CHUNKS_PATH
@@ -66,6 +68,29 @@ def count_punctuation(chars):
     punc = [char for char in chars if char in punctuation_marks]
     return len(punc)
 
+def number_syllables(word):
+    if word in pronounciation_dict:
+        syllable_list = [len(list(phoneme for phoneme in phonemes if phoneme[-1].isdigit())) for phonemes in pronounciation_dict[word.lower()]]
+        if len(set(syllable_list)) == 1:
+            return syllable_list[0]
+        else:
+            return -1
+    else:
+        print word
+        return -1
+
+def avg_syllables(words):
+    not_in_dictionary = 0
+    syllable_list = []
+    for word in words:
+        syllables_in_word = number_syllables(word)
+        if syllables_in_word == -1:
+            not_in_dictionary += 1
+        else:
+            syllable_list.append(syllables_in_word)
+    avg_syllables = float(sum(syllable_list))/len(syllable_list)
+    percentage_counted = (float(not_in_dictionary)*100)/len(words)
+    return avg_syllables, percentage_counted
 
 def get_pos_counts(tagged_text, text_length):
     # TODO: check should be normalised by no. words or no. tags
