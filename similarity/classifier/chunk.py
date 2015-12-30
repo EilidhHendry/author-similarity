@@ -20,7 +20,7 @@ def generate_text_path(author, title):
 
 def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
     chunk_output_directory = generate_chunk_path(author, title)
-
+    print chunk_output_directory    
     try:
         os.makedirs(chunk_output_directory)
     except:
@@ -98,7 +98,7 @@ def chunk_dir(root_path, chunk_size):
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':
-                author = dir_name.split('/')[-1]
+                author = dir_name.split('/')[-2]
                 title = file.split('.')[0]
                 path = os.path.join(dir_name, file)
                 to_chunk.append((path, author, title))
