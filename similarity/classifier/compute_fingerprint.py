@@ -4,6 +4,8 @@ import nltk
 import csv
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
+punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`', ]
+
 
 def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
 
@@ -64,7 +66,6 @@ def analyze_text(input_chunk):
 
 
 def count_punctuation(chars):
-    punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/']
     punc = [char for char in chars if char in punctuation_marks]
     return len(punc)
 
@@ -76,20 +77,23 @@ def number_syllables(word):
         else:
             return -1
     else:
-        print word
         return -1
+
 
 def avg_syllables(words):
     not_in_dictionary = 0
     syllable_list = []
     for word in words:
-        syllables_in_word = number_syllables(word)
-        if syllables_in_word == -1:
-            not_in_dictionary += 1
-        else:
-            syllable_list.append(syllables_in_word)
+        clean_word = word.lower().strip()
+        # ignore word if the word contains any punctuation or if digit
+        if not set(word).intersection(set(punctuation_marks)) and not word.isdigit():
+            syllables_in_word = number_syllables(clean_word)
+            if syllables_in_word == -1:
+                not_in_dictionary += 1
+            else:
+                syllable_list.append(syllables_in_word)
     avg_syllables = float(sum(syllable_list))/len(syllable_list)
-    percentage_counted = (float(not_in_dictionary)*100)/len(words)
+    percentage_counted = (float(len(words)-not_in_dictionary)*100)/len(words)
     return avg_syllables, percentage_counted
 
 def get_pos_counts(tagged_text, text_length):
@@ -188,4 +192,7 @@ def compute_all_fingerprints(root_path):
             compute_fingerprint(author, title, file)
 
 if __name__ == '__main__':
-    compute_all_fingerprints(constants.CHUNKS_PATH)
+    #compute_all_fingerprints(constants.CHUNKS_PATH)
+
+    corpus = nltk.corpus.reader.PlaintextCorpusReader('data/texts/hemingway', 'completeshortstories_clean.txt', word_tokenizer=nltk.tokenize.treebank.TreebankWordTokenizer())
+    print avg_syllables(corpus.words())
