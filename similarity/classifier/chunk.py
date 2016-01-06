@@ -114,4 +114,4 @@ def chunk_dir(root_path, chunk_size):
             chunk_text(current_file_path, author, title, chunk_size)
 
 if __name__ == '__main__':
-    chunk_dir(constants.PLAINTEXT_PATH, constants.CHUNK_SIZE)
+    chunk_dir(constants.PREPROCESSED_PATH, constants.CHUNK_SIZE)

@@ -4,7 +4,7 @@ from clean_up import clean_directories
 from chunk import chunk_dir
 from compute_fingerprint import compute_all_fingerprints
 from combine_chunks import combine_chunks
-from svm import train_csv, svm_accuracy, store_classifier, load_classifier
+from svm import train_svm, svm_accuracy, store_classifier, load_classifier
 
 if __name__ == "__main__":
     print "cleaning text"
@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     print "training"
     combine_chunks(constants.FINGERPRINTS_PATH)
-    clf, test_data, test_targets = train_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
+    clf, test_data, test_targets = train_svm()
 
     print "storing"
     store_classifier(clf, constants.MODEL_PATH)

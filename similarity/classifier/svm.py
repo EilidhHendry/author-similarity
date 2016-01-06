@@ -32,14 +32,9 @@ def read_csv(fingerprint_file):
 
     return training_data, target_data
 
-
-def train_csv(fingerprint_file):
-    training_data, targets = read_csv(fingerprint_file)
-    return train_svm(training_data, targets)
-
-
 # We train the SVM every time a new text/author is added to the system
-def train_svm(training_data, targets):
+def train_svm():
+    training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
 
     #scale the input data
     scaled_training_data = scale(training_data)
