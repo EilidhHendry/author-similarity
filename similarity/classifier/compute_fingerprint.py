@@ -4,10 +4,9 @@ import nltk
 import csv
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
-punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`', ]
+punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
-
-def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
+def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     root_dir = constants.CHUNKS_PATH
 
@@ -192,7 +191,7 @@ def compute_all_fingerprints(root_path):
         result.get()
     else:
         for (author, title, file) in to_fingerprint:
-            compute_fingerprint(author, title, file)
+            fingerprint_text(author, title, file)
 
 if __name__ == '__main__':
     #compute_all_fingerprints(constants.CHUNKS_PATH)
