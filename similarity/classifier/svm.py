@@ -5,6 +5,9 @@ import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib
 
+# surpress sklearn warnings about
+import warnings
+
 import constants
 
 
@@ -34,26 +37,28 @@ def read_csv(fingerprint_file):
 
 # We train the SVM every time a new text/author is added to the system
 def train_svm():
-    training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
 
-    #scale the input data
-    scaled_training_data = scale(training_data)
+        #scale the input data
+        scaled_training_data = scale(training_data)
 
-    #Split the data into training and validation set
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
+        #Split the data into training and validation set
+        X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
 
-    print "Feature space holds %d observations and %d features" % X_train.shape
-    c_range = numpy.logspace(-2,2,40)
+        print "Feature space holds %d observations and %d features" % X_train.shape
+        c_range = numpy.logspace(-2,2,40)
 
-    print 'Tuning hyperparameters for precision'
-    param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
-    cv = 5
-    scoring = "f1_weighted"
+        print 'Tuning hyperparameters for precision'
+        param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
+        cv = 5
+        scoring = "f1_weighted"
 
-    clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
-    clf.fit(X_train, y_train)
+        clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
+        clf.fit(X_train, y_train)
 
-    return clf, X_test, y_test
+        return clf, X_test, y_test
 
 
 def store_classifier(classifier, output_file_path):
@@ -101,10 +106,12 @@ def evaluate_svm(classifier, test_data, test_targets):
 
 
 def svm_accuracy(classifier, test_data, test_targets):
-    # find the accuracy of the classifier using 5-fold cross-validation
-    scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
-    # return the mean of the 5 folds
-    return scores.mean()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # find the accuracy of the classifier using 5-fold cross-validation
+        scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
+        # return the mean of the 5 folds
+        return scores.mean()
 
 
 if __name__ == '__main__':
