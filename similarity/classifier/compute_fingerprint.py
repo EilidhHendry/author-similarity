@@ -4,10 +4,9 @@ import nltk
 import csv
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
-punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`', ]
+punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
-
-def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
+def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     root_dir = constants.CHUNKS_PATH
 
@@ -22,6 +21,9 @@ def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
 
     # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
     simple_stats = analyze_text(corpus)
+    
+    # get avg num syllables per word
+    avg_syllables_result, _ = avg_syllables(corpus.words())
 
     # tag current text
     # requires nltk maxent_treebank_tagger downloaded
@@ -33,7 +35,7 @@ def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
     # get normalised pos distributions
     pos_distribution = get_pos_counts(pos_current_text, text_length)
 
-    fingerprint_list = [author_name]+simple_stats+function_word_distribution+pos_distribution
+    fingerprint_list = [author_name] + simple_stats + [avg_syllables_result] + function_word_distribution + pos_distribution
 
     if write_to_csv:
         fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name)
@@ -145,7 +147,7 @@ def get_function_word_distribution(tagged_text, text_length):
 
 
 def create_csv(author_name, book_title, file_name):
-    fieldnames = ['target', 'avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation',
+    fieldnames = ['target', 'avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation', 'avg syllables',
                   'the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
                   'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
                   'up', 'what', 'me', 'no', 'like', 'would', 'if', 'about', 'which', 'them', 'into', 'who', 'could',
@@ -189,7 +191,7 @@ def compute_all_fingerprints(root_path):
         result.get()
     else:
         for (author, title, file) in to_fingerprint:
-            compute_fingerprint(author, title, file)
+            fingerprint_text(author, title, file)
 
 if __name__ == '__main__':
     #compute_all_fingerprints(constants.CHUNKS_PATH)

@@ -1,12 +1,7 @@
  # -*- coding: utf-8 -*-
-
 __author__ = 'eilidhhendry'
-
-import os
-
 import constants
-
-input_file = constants.PLAINTEXT_PATH+'hemingway/completeshortstories.txt'
+import os
 
 def generate_directory_name(name):
     directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
@@ -50,7 +45,7 @@ def clean_directories(root_path):
     if (constants.PARALLEL):
         import celery
         import tasks
-        group = celery.group((tasks.clean_text.s(current_file_path, author, title) for (current_file_path, author, title) in to_chunk))
+        group = celery.group((tasks.clean_text.s(current_file_path, author, title) for (current_file_path, author, title) in to_preprocess))
         result = group()
         result.get()
     else:

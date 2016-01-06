@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import constants
 from clean_up import clean_directories
 from chunk import chunk_dir

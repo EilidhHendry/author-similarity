@@ -20,7 +20,7 @@ def generate_text_path(author, title):
 
 def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
     chunk_output_directory = generate_chunk_path(author, title)
-
+    print chunk_output_directory    
     try:
         os.makedirs(chunk_output_directory)
     except:
