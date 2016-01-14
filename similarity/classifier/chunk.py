@@ -4,7 +4,7 @@ import os
 import nltk
 
 def generate_directory_name(name):
-    directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
+    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
     return directory_name
 
 
@@ -20,7 +20,6 @@ def generate_text_path(author, title):
 
 def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
     chunk_output_directory = generate_chunk_path(author, title)
-    print chunk_output_directory    
     try:
         os.makedirs(chunk_output_directory)
     except:
