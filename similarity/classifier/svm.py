@@ -4,6 +4,9 @@ import pandas
 import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import RandomizedLogisticRegression
+from sklearn.pipeline import Pipeline
 
 import constants
 
@@ -52,9 +55,20 @@ def train_svm():
 
     clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
     clf.fit(X_train, y_train)
+    """
+    selector_svm = svm.SVC()
+    selector_svm.set_params(C=clf.best_params_['C'], kernel = 'linear')
+    selector = RFE(selector_svm, step=1)
+    selector = selector.fit(X_train, y_train)
+    print selector.support_
+    print selector.ranking_
 
+    pipe = Pipeline([('feature_selection', selector), ('classification', clf)])
+    pipe.fit(X_train, y_train)
+
+    return pipe, X_test, y_test
+    """
     return clf, X_test, y_test
-
 
 def store_classifier(classifier, output_file_path):
     joblib.dump(classifier, output_file_path)
