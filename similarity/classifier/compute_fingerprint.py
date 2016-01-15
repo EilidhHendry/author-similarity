@@ -21,7 +21,7 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
     simple_stats = analyze_text(corpus)
-    
+
     # get avg num syllables per word
     avg_syllables_result, _ = avg_syllables(corpus.words())
 
@@ -147,17 +147,6 @@ def get_function_word_distribution(tagged_text, text_length):
 
 
 def create_csv(author_name, book_title, file_name):
-    fieldnames = ['target', 'avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation', 'avg syllables',
-                  'the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
-                  'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
-                  'up', 'what', 'me', 'no', 'like', 'would', 'if', 'about', 'which', 'them', 'into', 'who', 'could',
-                  'can', 'some', 'their', 'over', 'down', 'your', 'will', 'its', 'any', 'through', 'after', 'off', 'than',
-                  'our', 'us', 'around', 'these', 'because', 'must', 'before', 'those', '&', 'should', 'himself', 'both',
-                  'against', 'may', 'might', 'shall', 'since', 'de', 'within', 'between', 'each', 'under', 'until', 'toward',
-                  'another', 'myself', 'PRP$', 'VBG', 'VBD', 'VBN', 'POS', 'VBP', 'WDT', 'JJ', 'WP', 'VBZ', 'DT', 'RP',
-                  'NN', 'FW', 'TO', 'PRP', 'RB', 'NNS', 'NNP', 'VB', 'WRB', 'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', 'EX',
-                  'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
-
     output_dir = constants.FINGERPRINTS_PATH
 
     # create output file in output folder, with name of input folder
@@ -171,7 +160,7 @@ def create_csv(author_name, book_title, file_name):
 
     # create csv writer object and write the fieldnames to first row
     csv_writer = csv.writer(output_file, delimiter='\t')
-    csv_writer.writerow(fieldnames)
+    csv_writer.writerow(constants.CHUNK_MODEL_FINGERPRINT_FIELDS )
     return csv_writer
 
 def compute_all_fingerprints(root_path):
@@ -179,19 +168,21 @@ def compute_all_fingerprints(root_path):
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':
-                author = dir_name.split('/')[-2]
-                title = dir_name.split('/')[-1]
+                author = dir_name.split('/')[-3]
+                title = dir_name.split('/')[-2]
                 to_fingerprint.append((author, title, file))
 
+    fingerprints = []
     if (constants.PARALLEL):
         import celery
         import tasks
         group = celery.group((tasks.compute_fingerprint.s(author, title, file) for (author, title, file) in to_fingerprint))
         result = group()
-        result.get()
+        fingerprints = result.get()
     else:
         for (author, title, file) in to_fingerprint:
-            fingerprint_text(author, title, file)
+            fingerprints.append(fingerprint_text(author, title, file))
+    return fingerprints
 
 if __name__ == '__main__':
     #compute_all_fingerprints(constants.CHUNKS_PATH)

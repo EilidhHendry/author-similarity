@@ -1,4 +1,8 @@
 from django.db import models
+import classifier.constants
+import classifier.clean_up
+import classifier.chunk
+import classifier.compute_fingerprint
 
 def generate_directory_name(name):
     directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
@@ -26,6 +30,18 @@ class Text(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+    def save(self, *args, **kwargs):
+        super(Text, self).save(*args, **kwargs)
+        # TODO: add cleanup
+        classifier.chunk.chunk_text(self.text_file.path, self.author.name, self.name)
+        chunk_path = classifier.chunk.generate_chunk_path(self.author.name, self.name)
+        fingerprints = classifier.compute_fingerprint.compute_all_fingerprints(chunk_path)
+        for (chunk_number, fingerprint) in enumerate(fingerprints):
+            theChunk = Chunk.create(self, chunk_number, fingerprint)
+            theChunk.save()
+            print theChunk
+        # TODO: create "Text Chunk"
+
 
 def create_chunk_upload_path(self, filename):
     author_name = generate_directory_name(self.author.name)
@@ -44,13 +60,23 @@ class Chunk(models.Model):
     def __unicode__(self):
         return u'%s (%i)' % (self.text, self.text_chunk_number)
 
+    @classmethod
+    def create(cls, text, chunk_number, fingerprint):
+        chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
+        # set fingerprint, skip author column
+        for (field_index, field_name) in enumerate(classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
+            print field_name
+            setattr(chunk, field_name, fingerprint[field_index+1])
+        return chunk
+
     # fingerprint
-    # todo: Find a better way to store all this nonsense
     avg_word_length     = models.FloatField(null=True, blank=True)
     avg_sentence_length = models.FloatField(null=True, blank=True)
     lexical_diversity   = models.FloatField(null=True, blank=True)
     percentage_punctuation  = models.FloatField(null=True, blank=True)
-    # function words
+    avg_word_length_syllables = models.FloatField(null=True, blank=True)
+
+    # Function Words frequencies
     the_relative_frequency     = models.FloatField(null=True, blank=True)
     and_relative_frequency     = models.FloatField(null=True, blank=True)
     of_relative_frequency      = models.FloatField(null=True, blank=True)
@@ -134,6 +160,8 @@ class Chunk(models.Model):
     toward_relative_frequency  = models.FloatField(null=True, blank=True)
     another_relative_frequency = models.FloatField(null=True, blank=True)
     myself_relative_frequency  = models.FloatField(null=True, blank=True)
+
+    # Part of Speech relative frequencies
     PRP_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     VBG_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     VBD_pos_relative_frequency     = models.FloatField(null=True, blank=True)
@@ -163,7 +191,7 @@ class Chunk(models.Model):
     CD_pos_relative_frequency      = models.FloatField(null=True, blank=True)
     EX_pos_relative_frequency      = models.FloatField(null=True, blank=True)
     IN_pos_relative_frequency      = models.FloatField(null=True, blank=True)
-    WP_pos_relative_frequency     = models.FloatField(null=True, blank=True)
+    WP_pos_relative_frequency        = models.FloatField(null=True, blank=True)
     MD_pos_relative_frequency      = models.FloatField(null=True, blank=True)
     NNPS_pos_relative_frequency    = models.FloatField(null=True, blank=True)
     JJS_pos_relative_frequency     = models.FloatField(null=True, blank=True)
