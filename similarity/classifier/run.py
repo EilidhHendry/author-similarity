@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import constants
 from clean_up import clean_directories
 from chunk import chunk_dir
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     clean_directories(constants.PLAINTEXT_PATH)
 
     print "chunking"
-    chunk_dir(constants.PREPROCESSED_PATH, constants.CHUNK_SIZE)
+    chunk_dir(constants.PREPROCESSED_PATH)
 
     print "fingerprinting"
     compute_all_fingerprints(constants.CHUNKS_PATH)

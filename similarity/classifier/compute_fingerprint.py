@@ -8,10 +8,8 @@ punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '['
 
 def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
-    root_dir = constants.CHUNKS_PATH
-
     # get the directory name and text name from file path
-    text_path = root_dir + author_name + "/" + book_title + "/"
+    text_path = constants.CHUNKS_PATH + author_name + "/" + book_title + "/"
 
     # create an nltk corpus from the current chunk
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
@@ -151,16 +149,16 @@ def create_csv(author_name, book_title, file_name):
 
     # create output file in output folder, with name of input folder
     try:
-        os.makedirs(output_dir+author_name+'/'+book_title)
+        os.makedirs(output_dir + author_name + '/' + book_title)
     except:
         pass
 
     file_number = file_name.split('.')[0]
-    output_file = open(output_dir+author_name+'/'+book_title+'/'+file_number+'.csv', 'w')
+    output_file = open(output_dir + author_name + '/' + book_title + '/' + file_number + '.csv', 'w')
 
     # create csv writer object and write the fieldnames to first row
     csv_writer = csv.writer(output_file, delimiter='\t')
-    csv_writer.writerow(constants.CHUNK_MODEL_FINGERPRINT_FIELDS )
+    csv_writer.writerow(['target'] + constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
     return csv_writer
 
 def compute_all_fingerprints(root_path):
@@ -168,8 +166,8 @@ def compute_all_fingerprints(root_path):
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':
-                author = dir_name.split('/')[-3]
-                title = dir_name.split('/')[-2]
+                author = dir_name.split('/')[-2]
+                title = dir_name.split('/')[-1]
                 to_fingerprint.append((author, title, file))
 
     fingerprints = []
