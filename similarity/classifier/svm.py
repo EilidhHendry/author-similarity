@@ -75,11 +75,11 @@ def train_svm():
         """
         return clf, X_test, y_test
 
-def store_classifier(classifier, output_file_path):
+def store_classifier(classifier, output_file_path=constants.MODEL_PATH):
     joblib.dump(classifier, output_file_path)
 
 
-def load_classifier(classifier_file_path):
+def load_classifier(classifier_file_path=constants.MODEL_PATH):
     classifier = joblib.load(classifier_file_path)
     return classifier
 

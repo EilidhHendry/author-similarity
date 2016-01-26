@@ -32,7 +32,7 @@ def clean_file(input_path, author, title):
             clean_line = clean_unicode(line)
             print >> output_file, clean_line
 
-def clean_directories(root_path):
+def clean_directories(root_path=constants.PLAINTEXT_PATH):
     to_preprocess = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:

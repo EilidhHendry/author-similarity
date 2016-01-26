@@ -161,7 +161,7 @@ def create_csv(author_name, book_title, file_name):
     csv_writer.writerow(['target'] + constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
     return csv_writer
 
-def compute_all_fingerprints(root_path):
+def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
     to_fingerprint = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:

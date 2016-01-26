@@ -89,7 +89,7 @@ def join_punctuation(word_list):
     yield current_word
 
 
-def chunk_dir(root_path):
+def chunk_dir(root_path=constants.PREPROCESSED_PATH):
     # dir_name: the current dir looking in
     # sub_dirs: list of sub-directories in the current directory.
     # files: list of files in the current directory.

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import constants
 from clean_up import clean_directories
 from chunk import chunk_dir
 from compute_fingerprint import compute_all_fingerprints
@@ -8,22 +7,22 @@ from svm import train_svm, svm_accuracy, store_classifier, load_classifier
 
 if __name__ == "__main__":
     print "cleaning text"
-    clean_directories(constants.PLAINTEXT_PATH)
+    clean_directories()
 
     print "chunking"
-    chunk_dir(constants.PREPROCESSED_PATH)
+    chunk_dir()
 
     print "fingerprinting"
-    compute_all_fingerprints(constants.CHUNKS_PATH)
+    compute_all_fingerprints()
 
     print "training"
-    combine_chunks(constants.FINGERPRINTS_PATH)
+    combine_chunks()
     clf, test_data, test_targets = train_svm()
 
     print "storing"
-    store_classifier(clf, constants.MODEL_PATH)
+    store_classifier(clf)
     print "loading"
-    clf = load_classifier(constants.MODEL_PATH)
+    clf = load_classifier()
 
     print "testing"
     accuracy = svm_accuracy(clf, test_data, test_targets)
