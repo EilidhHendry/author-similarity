@@ -9,7 +9,7 @@ punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '['
 def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     # get the directory name and text name from file path
-    text_path = constants.CHUNKS_PATH + author_name + "/" + book_title + "/"
+    text_path = constants.CHUNKS_PATH + author_name + "/" + book_title
 
     # create an nltk corpus from the current chunk
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
@@ -165,7 +165,7 @@ def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
     to_fingerprint = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
-            if file[0] != '.':
+            if file[0] != '.':  # prevent hidden files e.g .DS_Store
                 author = dir_name.split('/')[-2]
                 title = dir_name.split('/')[-1]
                 to_fingerprint.append((author, title, file))

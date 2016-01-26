@@ -4,11 +4,11 @@ import constants
 import os
 
 def generate_directory_name(name):
-    directory_name = "".join([char for char in name if char.isalpha() or char.isdigit()]).rstrip()
+    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
     return directory_name
 
-def generate_preprocessed_path(author, title):
-    output_directory = constants.PREPROCESSED_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+def generate_preprocessed_directory(author):
+    output_directory = constants.PREPROCESSED_PATH + generate_directory_name(author)
     return output_directory
 
 def clean_unicode(input_string):
@@ -17,15 +17,13 @@ def clean_unicode(input_string):
     return clean_string
 
 def clean_file(input_path, author, title):
-    preprocessed_output_directory = generate_preprocessed_path(author, title)
-
+    preprocessed_output_directory = generate_preprocessed_directory(author)
     try:
         os.makedirs(preprocessed_output_directory)
     except:
         pass
 
-    text_name = os.path.basename(input_path)
-    output_file = open(preprocessed_output_directory+'/'+text_name, 'w')
+    output_file = open(preprocessed_output_directory + '/' + generate_directory_name(title), 'w')
 
     with open(input_path) as file_content:
         for line in file_content:

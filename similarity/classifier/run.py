@@ -8,24 +8,20 @@ from svm import train_svm, svm_accuracy, store_classifier, load_classifier
 if __name__ == "__main__":
     print "cleaning text"
     clean_directories()
-
     print "chunking"
     chunk_dir()
-
     print "fingerprinting"
     compute_all_fingerprints()
+    print "combining"
+    combine_chunks()
 
     print "training"
-    combine_chunks()
     clf, test_data, test_targets = train_svm()
-
     print "storing"
     store_classifier(clf)
+
     print "loading"
     clf = load_classifier()
-
     print "testing"
     accuracy = svm_accuracy(clf, test_data, test_targets)
-
-    print "accuracy:"
-    print accuracy
+    print "accuracy:" + str(accuracy)

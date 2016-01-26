@@ -1,6 +1,13 @@
 __author__ = 'eilidhhendry'
 
-CLASSIFIER_ROOT = "similarity/classifier/"
+# Ensure our data path is correct whether running from this directory,
+# or from the django app
+import os
+current = os.getcwd()
+CLASSIFIER_ROOT = ""
+if not("classifier" in current):
+    CLASSIFIER_ROOT += "similarity/classifier/"
+
 DATA_PATH = CLASSIFIER_ROOT + "data/"
 PLAINTEXT_PATH = DATA_PATH + "texts/"
 PREPROCESSED_PATH = DATA_PATH + "preprocessed/"

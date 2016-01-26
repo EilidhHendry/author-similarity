@@ -9,7 +9,7 @@ def generate_directory_name(name):
 
 
 def generate_chunk_path(author, title):
-    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title)
     return output_directory
 
 
@@ -19,7 +19,7 @@ def generate_text_path(author, title):
 
 
 def chunk_text(input_path, author, title):
-    chunk_output_directory = generate_chunk_path(author, title)
+    chunk_output_directory = generate_chunk_path(author, title) + "/"
     try:
         os.makedirs(chunk_output_directory)
     except:
@@ -96,8 +96,8 @@ def chunk_dir(root_path=constants.PREPROCESSED_PATH):
     to_chunk = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
-            if file[0] != '.':
-                author = dir_name.split('/')[-2]
+            if file[0] != '.':  # prevent hidden files e.g .DS_Store
+                author = dir_name.split('/')[-1]
                 title = file.split('.')[0]
                 path = os.path.join(dir_name, file)
                 to_chunk.append((path, author, title))
