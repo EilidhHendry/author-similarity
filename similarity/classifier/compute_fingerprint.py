@@ -12,6 +12,7 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
     # get the directory name and text name from file path
     text_path = constants.CHUNKS_PATH + author_name + "/" + book_title
 
+    print text_path, chunk_name
     # create an nltk corpus from the current chunk
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
 
@@ -35,9 +36,9 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
         if field_name in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
             results.append(analyze_text_results[field_name])
 
-    if 'avg_syllables' in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
+    if 'avg_word_length_syllables' in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
         # get avg num syllables per word
-        avg_syllables_result, _ = avg_syllables(corpus.words())
+        avg_syllables_result  = avg_syllables(corpus.words())
         results.append(avg_syllables_result)
 
     # find the function words in the list of fields
@@ -113,7 +114,6 @@ def avg_syllables(words):
             else:
                 syllable_list.append(syllables_in_word)
     avg_syllables = float(sum(syllable_list))/len(syllable_list)
-    percentage_counted = (float(len(words)-not_in_dictionary)*100)/len(words)
     return avg_syllables
 
 
