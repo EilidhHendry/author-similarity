@@ -15,10 +15,16 @@ class Author(models.Model):
         return u'%s' % (self.name)
 
 
+def create_text_preprocessed_path(self, filename=""):
+    author_name = generate_directory_name(self.author.name)
+    text_name = generate_directory_name(self.name)
+    path = classifier.constants.PREPROCESSED_PATH + "/".join([author_name, text_name])
+    return path
+
 def create_text_upload_path(self, filename):
     author_name = generate_directory_name(self.author.name)
     text_name = generate_directory_name(self.name)
-    path = "texts/" + "/".join([author_name, text_name])
+    path = classifier.constants.PLAINTEXT_PATH + "/".join([author_name, text_name])
     return path
 
 class Text(models.Model):
@@ -32,22 +38,23 @@ class Text(models.Model):
 
     def save(self, *args, **kwargs):
         super(Text, self).save(*args, **kwargs)
-        # TODO: add cleanup
-        classifier.chunk.chunk_text(self.text_file.path, self.author.name, self.name)
-        chunk_path = classifier.chunk.generate_chunk_path(self.author.name, self.name)
-        fingerprints = classifier.compute_fingerprint.compute_all_fingerprints(chunk_path)
+
+        classifier.clean_up.clean_file(self.text_file.path, self.author.name, self.name)
+        cleaned_text_path = create_text_preprocessed_path(self)
+        classifier.chunk.chunk_text(cleaned_text_path, self.author.name, self.name)
+
+        text_chunks_path = classifier.chunk.generate_chunk_path(self.author.name, self.name)
+        fingerprints = classifier.compute_fingerprint.compute_all_fingerprints(text_chunks_path)
         for (chunk_number, fingerprint) in enumerate(fingerprints):
             theChunk = Chunk.create(self, chunk_number, fingerprint)
             theChunk.save()
-            print theChunk
-        # TODO: create "Text Chunk"
 
 
-def create_chunk_upload_path(self, filename):
+def create_chunk_upload_path(self, filename=""):
     author_name = generate_directory_name(self.author.name)
     text_name = generate_directory_name(self.text.name)
-    chunk_number = "{0:03d}.txt".format(self.text_chunk_number)
-    path = "chunks/" + "/".join([author_name, text_name, chunk_number])
+    chunk_number = "{0:04d}.txt".format(self.text_chunk_number)
+    path = classifier.constants.CHUNKS_PATH + "/".join([author_name, text_name, chunk_number])
     return path
 
 class Chunk(models.Model):
@@ -65,8 +72,10 @@ class Chunk(models.Model):
         chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
         # set fingerprint, skip author column
         for (field_index, field_name) in enumerate(classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
-            print field_name
             setattr(chunk, field_name, fingerprint[field_index+1])
+        # set the FileField programatically, as it already exists on filesystem
+        path = create_chunk_upload_path(chunk)
+        chunk.chunk_file.name = path
         return chunk
 
     # fingerprint

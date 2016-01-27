@@ -1,7 +1,9 @@
-import constants
-import clean_up
-import chunk
-from compute_fingerprint import fingerprint_text
+from celery import shared_task
+
+from classifier import constants
+from classifier import clean_up
+from classifier import chunk
+from classifier.compute_fingerprint import fingerprint_text
 
 import celery
 app = celery.Celery('tasks', backend="amqp", broker='amqp://guest@localhost//')

@@ -103,4 +103,4 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Media (used for uploads)
-MEDIA_ROOT = BASE_DIR + "/similarity/classifier/data"
+MEDIA_ROOT = BASE_DIR + "/"

@@ -3,7 +3,7 @@ __author__ = 'eilidhhendry'
 import os
 import constants
 
-def combine_chunks(root_path):
+def combine_chunks(root_path=constants.FINGERPRINTS_PATH):
     output_file = open(constants.COMBINED_FINGERPRINT_FILE_PATH, 'w')
     first_iteration = True
 

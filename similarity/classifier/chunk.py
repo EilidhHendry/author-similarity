@@ -9,7 +9,7 @@ def generate_directory_name(name):
 
 
 def generate_chunk_path(author, title):
-    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + "/"
+    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title)
     return output_directory
 
 
@@ -18,8 +18,8 @@ def generate_text_path(author, title):
     return output_directory
 
 
-def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
-    chunk_output_directory = generate_chunk_path(author, title)
+def chunk_text(input_path, author, title):
+    chunk_output_directory = generate_chunk_path(author, title) + "/"
     try:
         os.makedirs(chunk_output_directory)
     except:
@@ -49,7 +49,7 @@ def chunk_text(input_path, author, title, chunk_size=constants.CHUNK_SIZE):
             if word not in string.whitespace:
                 current_chunk_word_count += 1
 
-            if current_chunk_word_count == chunk_size:
+            if current_chunk_word_count == constants.CHUNK_SIZE:
 
                 # first join some punctuation to the previous word (returns generator object)
                 punctuation_joined_chunk = join_punctuation(current_chunk)
@@ -89,15 +89,15 @@ def join_punctuation(word_list):
     yield current_word
 
 
-def chunk_dir(root_path, chunk_size):
+def chunk_dir(root_path=constants.PREPROCESSED_PATH):
     # dir_name: the current dir looking in
     # sub_dirs: list of sub-directories in the current directory.
     # files: list of files in the current directory.
     to_chunk = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
-            if file[0] != '.':
-                author = dir_name.split('/')[-2]
+            if file[0] != '.':  # prevent hidden files e.g .DS_Store
+                author = dir_name.split('/')[-1]
                 title = file.split('.')[0]
                 path = os.path.join(dir_name, file)
                 to_chunk.append((path, author, title))
@@ -105,12 +105,12 @@ def chunk_dir(root_path, chunk_size):
     if (constants.PARALLEL):
         import celery
         import tasks
-        group = celery.group((tasks.chunk_text.s(current_file_path, author, title, chunk_size) for (current_file_path, author, title) in to_chunk))
+        group = celery.group((tasks.chunk_text.s(current_file_path, author, title) for (current_file_path, author, title) in to_chunk))
         result = group()
         result.get()
     else:
         for (current_file_path, author, title) in to_chunk:
-            chunk_text(current_file_path, author, title, chunk_size)
+            chunk_text(current_file_path, author, title)
 
 if __name__ == '__main__':
-    chunk_dir(constants.PREPROCESSED_PATH, constants.CHUNK_SIZE)
+    chunk_dir(constants.PREPROCESSED_PATH)
