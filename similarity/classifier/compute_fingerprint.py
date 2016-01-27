@@ -6,6 +6,7 @@ import csv
 pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
+
 def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     root_dir = constants.CHUNKS_PATH
@@ -19,28 +20,51 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
     # find the length of the current chunk to be used for normalisation
     text_length = len(corpus.words())
 
+    # list to return calculated fingerprints, begins with author_name for target
+    results = [author_name]
+
     # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
-    simple_stats = analyze_text(corpus)
+    # store results in dictionary
+    avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation = analyze_text(corpus)
+    analyze_text_results = {
+    'avg_word_length' : avg_word_length,
+    'avg_sentence_length' : avg_sentence_length,
+    'lexical_diversity' : lexical_diversity,
+    'percentage_punctuation' : percentage_punctuation
+    }
 
-    # get avg num syllables per word
-    avg_syllables_result, _ = avg_syllables(corpus.words())
+    for field_name in ['avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation']:
+        if field_name in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
+            results.append(analyze_text_results[field_name])
 
-    # tag current text
-    # requires nltk maxent_treebank_tagger downloaded
-    pos_current_text = nltk.pos_tag(corpus.words())
+    if 'avg_syllables' in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
+        # get avg num syllables per word
+        avg_syllables_result, _ = avg_syllables(corpus.words())
+        results.append(avg_syllables_result)
 
-    # get normalised function word distributions
-    function_word_distribution = get_function_word_distribution(pos_current_text, text_length)
+    # find the function words in the list of fields
+    function_word_list = get_function_word_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
+    #find the pos tags in the list of fields
+    tag_list = get_tag_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
 
-    # get normalised pos distributions
-    pos_distribution = get_pos_counts(pos_current_text, text_length)
+    # only tag the text if finding function words or pos tags
+    if function_word_list or tag_list:
+        # tag current text
+        # requires nltk maxent_treebank_tagger downloaded
+        pos_current_text = nltk.pos_tag(corpus.words())
 
-    fingerprint_list = [author_name] + simple_stats + [avg_syllables_result] + function_word_distribution + pos_distribution
+        # get normalised function word distributions
+        function_word_distribution = get_function_word_distribution(pos_current_text, text_length, function_word_list)
+        results.extend(function_word_distribution)
+
+        # get normalised pos distributions
+        pos_distribution = get_pos_counts(pos_current_text, text_length, tag_list)
+        results.extend(pos_distribution)
 
     if write_to_csv:
-        fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name)
+        fingerprint_to_csv(results, author_name, book_title, chunk_name)
 
-    return fingerprint_list
+    return results
 
 
 def fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name):
@@ -59,17 +83,13 @@ def analyze_text(input_chunk):
         char_count = len(chars)
         sentence_count = len(sentences)
         vocab_count = len(set(w.lower() for w in words))
-        punctuation_count = count_punctuation(chars)
         avg_word_length = float(char_count)/word_count
         avg_sentence_length = float(word_count)/sentence_count
         lexical_diversity = float(vocab_count) / word_count
+        punctuation_count = len([char for char in chars if set(char).intersection(set(punctuation_marks))])
         percentage_punctuation = float(punctuation_count) / char_count
-        return [avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation]
+        return avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
 
-
-def count_punctuation(chars):
-    punc = [char for char in chars if char in punctuation_marks]
-    return len(punc)
 
 def number_syllables(word):
     if word in pronounciation_dict:
@@ -96,13 +116,24 @@ def avg_syllables(words):
                 syllable_list.append(syllables_in_word)
     avg_syllables = float(sum(syllable_list))/len(syllable_list)
     percentage_counted = (float(len(words)-not_in_dictionary)*100)/len(words)
-    return avg_syllables, percentage_counted
+    return avg_syllables
 
-def get_pos_counts(tagged_text, text_length):
+
+def get_tag_list(fingerprint_fields):
+    tag_list = []
+    tag_end = "_pos_relative_frequency"
+    # if the field ends with "_pos_relative_frequency"
+    # then remove that from end and add word to list
+    for field in fingerprint_fields:
+        if field.endswith(tag_end):
+            tag = field.replace(tag_end, "")
+            tag_list.append(tag)
+    return tag_list
+
+
+def get_pos_counts(tagged_text, text_length, tag_list):
     # TODO: check should be normalised by no. words or no. tags
-    tag_list = ['PRP$', 'VBG', 'VBD', 'VBN', 'POS', 'VBP', 'WDT', 'JJ', 'WP', 'VBZ', 'DT', 'RP', 'NN', 'FW', 'TO',
-                 'PRP', 'RB', 'NNS', 'NNP', 'VB', 'WRB', 'CC', 'LS', 'PDT', 'RBS', 'RBR', 'CD', 'EX',
-                 'IN', 'WP$', 'MD', 'NNPS', 'JJS', 'JJR', 'UH']
+
     # initialise dictionary with tag list as keys
     final_pos_distribution = {key: 0 for key in tag_list}
 
@@ -119,19 +150,23 @@ def get_pos_counts(tagged_text, text_length):
     return ordered_pos_distributions
 
 
-def get_function_word_distribution(tagged_text, text_length):
+def get_function_word_list(fingerprint_fields):
+    function_word_list = []
+    function_end = "_relative_frequency"
+    # if the field ends with "_relative_frequency" and doesn't contain pos
+    # then remove that from end and add word to list
+    for field in fingerprint_fields:
+        if 'pos' not in field and field.endswith(function_end):
+            function_word = field.replace(function_end, "")
+            function_word_list.append(function_word)
+    return function_word_list
+
+
+def get_function_word_distribution(tagged_text, text_length, word_list):
     # TODO: check normalised by no. words or no. tags
     taglist = 'PRP PRP$ WP WP$ CC MD UH RP IN TO WDT DT PDT'.split()
 
     word_fd = nltk.FreqDist(word.lower() for (word, tag) in tagged_text if tag in taglist)
-
-    word_list = ['the', 'and', 'of', 'a', 'to', 'in', 'i', 'he', 'it', 'that', 'you', 'his', 'with', 'on', 'for', 'at',
-                 'as', 'but', 'her', 'they', 'she', 'him', 'all', 'this', 'we', 'from', 'or', 'out', 'an', 'my', 'by',
-                 'up', 'what', 'me', 'no', 'like', 'would', 'if', 'about', 'which', 'them', 'into', 'who', 'could',
-                 'can', 'some', 'their', 'over', 'down', 'your', 'will', 'its', 'any', 'through', 'after', 'off', 'than',
-                 'our', 'us', 'around', 'these', 'because', 'must', 'before', 'those', '&', 'should', 'himself', 'both',
-                 'against', 'may', 'might', 'shall', 'since', 'de', 'within', 'between', 'each', 'under', 'until', 'toward',
-                 'another', 'myself']
 
     # initialise dictionary with word list as keys
     word_list_dict = {key: 0 for key in word_list}
@@ -185,7 +220,4 @@ def compute_all_fingerprints(root_path):
     return fingerprints
 
 if __name__ == '__main__':
-    #compute_all_fingerprints(constants.CHUNKS_PATH)
-
-    corpus = nltk.corpus.reader.PlaintextCorpusReader('data/texts/hemingway', 'completeshortstories_clean.txt', word_tokenizer=nltk.tokenize.treebank.TreebankWordTokenizer())
-    print avg_syllables(corpus.words())
+    print fingerprint_text('hemingway', 'completeshortstories', '0000.txt', write_to_csv=True)
