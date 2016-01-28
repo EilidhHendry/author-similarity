@@ -3,10 +3,8 @@ import classifier.constants
 import classifier.clean_up
 import classifier.chunk
 import classifier.compute_fingerprint
+from classifier.util import generate_directory_name
 
-def generate_directory_name(name):
-    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
-    return directory_name
 
 class Author(models.Model):
     name = models.CharField(max_length=200)

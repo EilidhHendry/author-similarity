@@ -1,11 +1,9 @@
 import constants
+from util import generate_directory_name
+
 import string
 import os
 import nltk
-
-def generate_directory_name(name):
-    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
-    return directory_name
 
 
 def generate_chunk_path(author, title):

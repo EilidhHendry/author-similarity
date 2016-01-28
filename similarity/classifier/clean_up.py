@@ -1,11 +1,9 @@
  # -*- coding: utf-8 -*-
 __author__ = 'eilidhhendry'
 import constants
-import os
+from util import generate_directory_name
 
-def generate_directory_name(name):
-    directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
-    return directory_name
+import os
 
 def generate_preprocessed_directory(author):
     output_directory = constants.PREPROCESSED_PATH + generate_directory_name(author)
