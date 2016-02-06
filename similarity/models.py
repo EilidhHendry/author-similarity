@@ -76,6 +76,12 @@ class Chunk(models.Model):
         chunk.chunk_file.name = path
         return chunk
 
+    def get_fingerprint(self):
+        fields = []
+        for (field_index, field_name) in enumerate(classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
+            fields.append(getattr(self, field_name))
+        return fields
+
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)
     avg_sentence_length = models.FloatField(null=True, blank=True)
