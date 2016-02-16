@@ -3,6 +3,8 @@ import os
 import nltk
 import csv
 
+
+
 pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
@@ -12,7 +14,6 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
     # get the directory name and text name from file path
     text_path = constants.CHUNKS_PATH + author_name + "/" + book_title
 
-    print text_path, chunk_name
     # create an nltk corpus from the current chunk
     corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, chunk_name)
 
@@ -64,6 +65,26 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
         fingerprint_to_csv(results, author_name, book_title, chunk_name)
 
     return results
+
+
+def tokenize_words(input_chunk):
+    """
+    Takes string and returns list of tokens
+    :param input_chunk: string
+    :return: list
+    """
+    word_tokenizer = nltk.tokenize.WordPunctTokenizer()
+    return word_tokenizer.tokenize(input_chunk)
+
+
+def tokenize_sentences(input_chunk):
+    """
+    Takes string and returns list of sentences containing lists of tokens
+    :param input_chunk: string
+    :return: list of lists
+    """
+    sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
+    return [tokenize_words(sentence) for sentence in sentence_tokenizer.tokenize(input_chunk)]
 
 
 def fingerprint_to_csv(fingerprint_list, author_name, book_title, chunk_name):
