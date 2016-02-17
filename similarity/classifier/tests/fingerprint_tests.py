@@ -3,7 +3,7 @@ import unittest
 import similarity.classifier.compute_fingerprint as compute_fingerprint
 
 class FingerprintTest(unittest.TestCase):
-
+    # TODO: tokenize tests, pos tests, function word tests, more test sentences for avg syllables
 
     def setUp(self):
         pass
@@ -61,8 +61,31 @@ class FingerprintTest(unittest.TestCase):
         ]
         for test_sentence, result in test_sentences:
             avg_syllables = compute_fingerprint.avg_syllables(test_sentence)
-            print avg_syllables
             self.assertEquals(avg_syllables, result, msg=(test_sentence, avg_syllables, '!=', result))
+
+    def test_pos_distribution(self):
+        # TODO: more sentences
+        test_sentences = [
+            ([("dog", "NN")], [1, 0, 0]),
+            ([], [0, 0, 0]),
+            ([('the', 'DT'), ('quick', 'NN'), ('brown', 'NN'), ('fox', 'NN'), ('jumped', 'VBD'), ('.', '.')],
+             [0.5, float(1)/6, float(1)/6])
+        ]
+        tag_list = ["NN", "DT", "VBD"]
+        for tagged_test_sentence, result in test_sentences:
+            pos_freq_dis = compute_fingerprint.get_pos_counts(tagged_test_sentence, len(tagged_test_sentence), tag_list)
+            self.assertEquals(pos_freq_dis, result, msg=(tagged_test_sentence, pos_freq_dis, '!=', result))
+
+    def test_function_word_distribution(self):
+        # TODO: more sentences
+        test_sentences = [
+            ([("into", "IN"), ("the", "DET"), ("dog", "NN")], [float(1)/3])
+        ]
+        tag_list = ["into"]
+        for tagged_test_sentence, result in test_sentences:
+            function_word_dist = compute_fingerprint.get_function_word_distribution(tagged_test_sentence, len(tagged_test_sentence), tag_list)
+            self.assertEquals(function_word_dist, result, msg=(tagged_test_sentence, function_word_dist, '!=', result))
+
 
 if __name__ == '__main__':
     unittest.main()
