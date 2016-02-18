@@ -69,6 +69,86 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     return results
 
+def fingerprint_text_string(author_name, book_title, input_chunk_or_path, write_to_csv=True, from_file=True):
+    """
+    Can take a text as either a string or a path to file
+    :param input_chunk_or_path: string or path
+    :param write_to_csv: if true writes results to csv
+    :param from_file: if true, tries to read input_chunk_or_path as file
+    :return:
+    """
+
+    if from_file:
+        # get the directory name and text name from file path
+        text_path = constants.CHUNKS_PATH + author_name + "/" + book_title + '/' + input_chunk_or_path
+
+        try:
+            text_content = open(text_path).read()
+        except TypeError:
+            text_content = input_chunk_or_path
+    else:
+        text_content = input_chunk_or_path
+
+    words = tokenize_words(text_content)
+
+    # TODO: if text length is 0 return all 0
+    # find the length of the current chunk to be used for normalisation
+    text_length = len(words)
+
+    # list to return calculated fingerprints, begins with author_name for target
+    results = [author_name]
+
+    # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
+    # store results in dictionary
+    avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation = analyze_text(text_content)
+    analyze_text_results = {
+    'avg_word_length' : avg_word_length,
+    'avg_sentence_length' : avg_sentence_length,
+    'lexical_diversity' : lexical_diversity,
+    'percentage_punctuation' : percentage_punctuation
+    }
+
+    for field_name in ['avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation']:
+        if field_name in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
+            results.append(analyze_text_results[field_name])
+
+    if 'avg_word_length_syllables' in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
+        # get avg num syllables per word
+        avg_syllables_result  = avg_syllables(words)
+        results.append(avg_syllables_result)
+
+    # find the function words in the list of fields
+    function_word_list = get_function_word_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
+    #find the pos tags in the list of fields
+    tag_list = get_tag_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
+
+    # only tag the text if finding function words or pos tags
+    if function_word_list or tag_list:
+        # tag current text
+        # requires nltk maxent_treebank_tagger downloaded
+        pos_current_text = nltk.pos_tag(words)
+
+        # get normalised function word distributions
+        function_word_distribution = get_function_word_distribution(pos_current_text, text_length, function_word_list)
+        assert len(function_word_distribution) == len(function_word_list), \
+        'there are %r fields in function_word_list, but function_word_distribution contains %r' \
+        % (len(function_word_distribution), len(function_word_list))
+        results.extend(function_word_distribution)
+
+        # get normalised pos distributions
+        pos_distribution = get_pos_counts(pos_current_text, text_length, tag_list)
+        assert len(pos_distribution) == len(tag_list), \
+        'there are %r fields in tag_list, but pos_distribution contains %r' \
+        % (len(tag_list), len(pos_distribution))
+        results.extend(pos_distribution)
+
+    if write_to_csv:
+        fingerprint_to_csv(results, author_name, book_title, chunk_name)
+
+    assert len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS) == len(results[1:]), \
+        'there are %r fields in constants.CHUNK_MODEL_FINGERPRINT_FIELDS, but results contain %r' \
+        % (len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS), len(results[1:]))
+    return results
 
 def tokenize_words(input_chunk):
     """
@@ -155,6 +235,7 @@ def avg_syllables(words):
 
 
 def get_tag_list(fingerprint_fields):
+    # TODO: fix $ issue
     tag_list = []
     tag_end = "_pos_relative_frequency"
     # if the field ends with "_pos_relative_frequency"
@@ -167,7 +248,7 @@ def get_tag_list(fingerprint_fields):
 
 
 def get_pos_counts(tagged_text, text_length, tag_list):
-    # TODO: check should be normalised by no. words or no. tags
+    # TODO: check should be normalised by no. words or no. tags; get rid of text length
 
     # initialise dictionary with tag list as keys
     final_pos_distribution = {key: 0 for key in tag_list}
@@ -201,7 +282,7 @@ def get_function_word_list(fingerprint_fields):
 
 
 def get_function_word_distribution(tagged_text, text_length, word_list):
-    # TODO: check normalised by no. words or no. tags
+    # TODO: check normalised by no. words or no. tags; get rid of text_length
     taglist = 'PRP PRP$ WP WP$ CC MD UH RP IN TO WDT DT PDT'.split()
 
     word_fd = nltk.FreqDist(word.lower() for (word, tag) in tagged_text if tag in taglist)
@@ -261,5 +342,6 @@ if __name__ == '__main__':
     author = 'hemingway'
     title = 'completeshortstories'
     chunk_name = '0000.txt'
-    setup_command = "from compute_fingerprint import fingerprint_text"
-    print timeit.timeit(setup=setup_command, stmt='fingerprint_text(\'hemingway\',  \'completeshortstories\', \'0000.txt\',  write_to_csv=False)', number=1)
+    print fingerprint_text(author, title, chunk_name, write_to_csv=False)
+    #setup_command = "from compute_fingerprint import fingerprint_text"
+    #print timeit.timeit(setup=setup_command, stmt='fingerprint_text(\'hemingway\',  \'completeshortstories\', \'0000.txt\',  write_to_csv=False)', number=1)
