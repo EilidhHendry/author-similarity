@@ -242,6 +242,8 @@ def get_tag_list(fingerprint_fields):
     for field in fingerprint_fields:
         if field.endswith(tag_end):
             tag = field.replace(tag_end, "")
+            if tag.endswith("_dollar"):
+                tag = tag.replace("_dollar", "$")
             tag_list.append(tag)
     return tag_list
 
