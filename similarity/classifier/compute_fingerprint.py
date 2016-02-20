@@ -2,7 +2,6 @@ import constants
 import os
 import nltk
 import csv
-import timeit
 import string
 
 
@@ -69,25 +68,25 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
 
     return results
 
-def fingerprint_text_string(author_name, book_title, input_chunk_or_path, write_to_csv=True, from_file=True):
+def fingerprint_text_string(author_name, book_title, write_to_csv=True, chunk_as_path=None, chunk_as_string=None):
     """
     Can take a text as either a string or a path to file
-    :param input_chunk_or_path: string or path
     :param write_to_csv: if true writes results to csv
-    :param from_file: if true, tries to read input_chunk_or_path as file
-    :return:
+    :param chunk_as_path: if not None tries to read input_chunk_or_path as file
+    :param chunk_as_string: if not None takes input as string
+    :return: list containing author name plus floats representing fingerprint
     """
 
-    if from_file:
-        # get the directory name and text name from file path
-        text_path = constants.CHUNKS_PATH + author_name + "/" + book_title + '/' + input_chunk_or_path
-
+    if chunk_as_path:
         try:
-            text_content = open(text_path).read()
-        except TypeError:
-            text_content = input_chunk_or_path
+            text_content = open(chunk_as_path).read()
+        except IOError:
+            print 'could not open file'
+            raise
+    elif chunk_as_string:
+        text_content = chunk_as_string
     else:
-        text_content = input_chunk_or_path
+        raise ValueError('Must provide values for either chunk_as_path or chunk_as_string')
 
     words = tokenize_words(text_content)
 
@@ -342,6 +341,4 @@ if __name__ == '__main__':
     author = 'hemingway'
     title = 'completeshortstories'
     chunk_name = '0000.txt'
-    print fingerprint_text(author, title, chunk_name, write_to_csv=False)
-    #setup_command = "from compute_fingerprint import fingerprint_text"
-    #print timeit.timeit(setup=setup_command, stmt='fingerprint_text(\'hemingway\',  \'completeshortstories\', \'0000.txt\',  write_to_csv=False)', number=1)
+    print fingerprint_text_string(author, write_to_csv=False, chunk_as_string='')
