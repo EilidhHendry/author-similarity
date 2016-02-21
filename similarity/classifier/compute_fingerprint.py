@@ -8,66 +8,7 @@ import string
 pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
-
-def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True):
-
-    # get the directory name and text name from file path
-    text_path = constants.CHUNKS_PATH + author_name + "/" + book_title + '/' + chunk_name
-
-    text_content = open(text_path).read()
-
-    words = tokenize_words(text_content)
-
-    # find the length of the current chunk to be used for normalisation
-    text_length = len(words)
-
-    # list to return calculated fingerprints, begins with author_name for target
-    results = [author_name]
-
-    # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
-    # store results in dictionary
-    avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation = analyze_text(text_content)
-    analyze_text_results = {
-    'avg_word_length' : avg_word_length,
-    'avg_sentence_length' : avg_sentence_length,
-    'lexical_diversity' : lexical_diversity,
-    'percentage_punctuation' : percentage_punctuation
-    }
-
-    for field_name in ['avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation']:
-        if field_name in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
-            results.append(analyze_text_results[field_name])
-
-    if 'avg_word_length_syllables' in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
-        # get avg num syllables per word
-        avg_syllables_result  = avg_syllables(words)
-        results.append(avg_syllables_result)
-
-    # find the function words in the list of fields
-    function_word_list = get_function_word_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
-    #find the pos tags in the list of fields
-    tag_list = get_tag_list(constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
-
-    # only tag the text if finding function words or pos tags
-    if function_word_list or tag_list:
-        # tag current text
-        # requires nltk maxent_treebank_tagger downloaded
-        pos_current_text = nltk.pos_tag(words)
-
-        # get normalised function word distributions
-        function_word_distribution = get_function_word_distribution(pos_current_text, text_length, function_word_list)
-        results.extend(function_word_distribution)
-
-        # get normalised pos distributions
-        pos_distribution = get_pos_counts(pos_current_text, text_length, tag_list)
-        results.extend(pos_distribution)
-
-    if write_to_csv:
-        fingerprint_to_csv(results, author_name, book_title, chunk_name)
-
-    return results
-
-def fingerprint_text_string(author_name, book_title, chunk_name, write_to_csv=True, chunk_as_path=None, chunk_as_string=None):
+def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True, chunk_as_path=None, chunk_as_string=None):
     """
     Can take a text as either a string or a path to file
     :param write_to_csv: if true writes results to csv
@@ -144,7 +85,6 @@ def fingerprint_text_string(author_name, book_title, chunk_name, write_to_csv=Tr
         'there are %r fields in constants.CHUNK_MODEL_FINGERPRINT_FIELDS, but results contain %r' \
         % (len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS), len(results.keys()))
 
-    results['author_name'] = author_name
     return results
 
 def tokenize_words(input_chunk):
@@ -338,23 +278,25 @@ def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
             if file[0] != '.':  # prevent hidden files e.g .DS_Store
                 author = dir_name.split('/')[-2]
                 title = dir_name.split('/')[-1]
-                to_fingerprint.append((author, title, file))
+                chunk_path = dir_name+'/'+file
+                to_fingerprint.append((author, title, file, chunk_path))
 
     fingerprints = []
     if (constants.PARALLEL):
+        #TODO: Broken fix to use new arguments
         import celery
         import tasks
         group = celery.group((tasks.compute_fingerprint.s(author, title, file) for (author, title, file) in to_fingerprint))
         result = group()
         fingerprints = result.get()
     else:
-        for (author, title, file) in to_fingerprint:
-            fingerprints.append(fingerprint_text(author, title, file))
+        for (author, title, file, chunk_path) in to_fingerprint:
+            fingerprints.append(fingerprint_text(author, title, file, chunk_as_path=chunk_path))
     return fingerprints
 
 if __name__ == '__main__':
     author = 'hemingway'
     title = 'completeshortstories'
     chunk_name = '0000.txt'
-    print fingerprint_text_string(author, title, chunk_name, write_to_csv=True,
+    print fingerprint_text(author, title, chunk_name, write_to_csv=True,
                                   chunk_as_path='data/chunks/hemingway/completeshortstories/0000.txt')

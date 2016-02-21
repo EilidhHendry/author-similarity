@@ -69,8 +69,8 @@ class Chunk(models.Model):
     def create(cls, text, chunk_number, fingerprint):
         chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
         # set fingerprint, skip author column
-        for (field_index, field_name) in enumerate(classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
-            setattr(chunk, field_name, fingerprint[field_index+1])
+        for key in fingerprint.keys():
+            setattr(chunk, key, fingerprint[key])
         # set the FileField programatically, as it already exists on filesystem
         path = create_chunk_upload_path(chunk)
         chunk.chunk_file.name = path
