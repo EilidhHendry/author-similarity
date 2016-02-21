@@ -315,9 +315,9 @@ class FingerprintTest(unittest.TestCase):
             result_list = []
             fingerprint_list=[]
 
-            fingerprint = compute_fingerprint.fingerprint_text_string(
+            fingerprint = compute_fingerprint.fingerprint_text(
                 argument_dictionary['author_name'], argument_dictionary['book_title'], argument_dictionary['chunk_name'],
-                write_to_csv=False, chunk_as_string=argument_dictionary['chunk_as_string'],
+                chunk_as_string=argument_dictionary['chunk_as_string'],
                 chunk_as_path=argument_dictionary['chunk_as_path'])
             for field in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
                 result_list.append(result_dictionary[field])

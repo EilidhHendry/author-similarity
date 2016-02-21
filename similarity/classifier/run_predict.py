@@ -8,7 +8,7 @@ import time
 if __name__ == "__main__":
     print time.ctime()
     print "fingerprinting"
-    fingerprint_list = fingerprint_text('hemingway', 'completeshortstories', '0000.txt', write_to_csv=False)
+    fingerprint_list = fingerprint_text('hemingway', 'completeshortstories', '0000.txt')
 
     print "loading classifier"
     clf = load_classifier(constants.MODEL_PATH)

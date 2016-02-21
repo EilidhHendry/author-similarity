@@ -8,10 +8,9 @@ import string
 pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
-def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True, chunk_as_path=None, chunk_as_string=None):
+def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, chunk_as_string=None):
     """
     Can take a text as either a string or a path to file
-    :param write_to_csv: if true writes results to csv
     :param chunk_as_path: if not None tries to read input_chunk_or_path as file
     :param chunk_as_string: if not None takes input as string
     :return: list containing author name plus floats representing fingerprint
@@ -78,7 +77,7 @@ def fingerprint_text(author_name, book_title, chunk_name, write_to_csv=True, chu
 
         results.update(pos_distribution)
 
-    if write_to_csv:
+    if constants.CSV:
         fingerprint_to_csv(results, author_name, book_title, chunk_name)
 
     assert len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS) == len(results.keys()), \
@@ -283,10 +282,9 @@ def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
 
     fingerprints = []
     if (constants.PARALLEL):
-        #TODO: Broken fix to use new arguments
         import celery
         import tasks
-        group = celery.group((tasks.compute_fingerprint.s(author, title, file) for (author, title, file) in to_fingerprint))
+        group = celery.group((tasks.compute_fingerprint.s(author, title, file, chunk_as_path=chunk_path) for (author, title, file, chunk_path) in to_fingerprint))
         result = group()
         fingerprints = result.get()
     else:
@@ -298,5 +296,5 @@ if __name__ == '__main__':
     author = 'hemingway'
     title = 'completeshortstories'
     chunk_name = '0000.txt'
-    print fingerprint_text(author, title, chunk_name, write_to_csv=True,
+    print fingerprint_text(author, title, chunk_name, 
                                   chunk_as_path='data/chunks/hemingway/completeshortstories/0000.txt')

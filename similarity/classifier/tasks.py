@@ -15,5 +15,5 @@ def chunk_text(input_path, author, title):
     return chunk.chunk_text(input_path, author, title)
 
 @app.task
-def compute_fingerprint(author_name, book_title, chunk_name, write_to_csv=True):
-    return fingerprint_text(author_name, book_title, chunk_name, write_to_csv)
+def compute_fingerprint(author_name, book_title, chunk_name, chunk_as_path=None, chunk_as_string=None):
+    return fingerprint_text(author_name, book_title, chunk_name, chunk_as_path, chunk_as_string)
