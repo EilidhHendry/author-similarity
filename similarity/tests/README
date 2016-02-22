@@ -1,8 +1,0 @@
-To run all tests: ./manage.py test similarity/tests/
-Searches for all files in the directory similarity/tests/ that matches the pattern test*.py
-
-To run one test file: ./manage.py test similarity.tests.modulename
-e.g. ./manage.py test similarity.tests.test_fingerprint
-
-To run one unit test: ./manage.py test similarity.tests.modulename.classname.testname
-e.g. ./manage.py test similarity.tests.test_fingerprint.FingerprintTest.test_fingerprint_text
