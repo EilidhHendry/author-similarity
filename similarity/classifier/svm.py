@@ -38,6 +38,7 @@ def read_csv(fingerprint_file):
 
     return training_data, target_data
 
+
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_data, targets):
     """
@@ -59,10 +60,7 @@ def train_svm(training_data, targets):
         #scale the input data
         scaled_training_data = scale(training_data)
 
-        #Split the data into training and validation set
-        X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
-        print y_train
-        print "Feature space holds %d observations and %d features" % X_train.shape
+        print "Feature space holds %d observations and %d features" % training_data.shape
         c_range = numpy.logspace(-2,2,40)
 
         print 'Tuning hyperparameters for precision'
@@ -71,9 +69,10 @@ def train_svm(training_data, targets):
         scoring = "f1_weighted"
 
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
-        clf.fit(X_train, y_train)
+        clf.fit(training_data, targets)
 
-        return clf, X_test, y_test
+        return clf
+
 
 def store_classifier(classifier, output_file_path=constants.MODEL_PATH):
     joblib.dump(classifier, output_file_path)
@@ -82,6 +81,47 @@ def store_classifier(classifier, output_file_path=constants.MODEL_PATH):
 def load_classifier(classifier_file_path=constants.MODEL_PATH):
     classifier = joblib.load(classifier_file_path)
     return classifier
+
+
+def find_classifier_accuracy(training_data, targets):
+    """
+    :param training_data: list of lists of floats representing fingerprint
+    :param targets: list of strings representing target values (author name)
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        # if constants.CSV is true,
+        # reads from csv and overwrites given values for training_data and targets
+        if constants.CSV:
+            training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
+
+        assert len(training_data) == len(targets), \
+        'there are %r items in the target list and, but %r items in the list of training data' \
+        % (len(targets), len(training_data))
+
+        #scale the input data
+        scaled_training_data = scale(training_data)
+
+        #Split the data into training and validation set
+        training_data, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
+
+        print "Feature space holds %d observations and %d features" % training_data.shape
+        c_range = numpy.logspace(-2,2,40)
+
+        print 'Tuning hyperparameters for precision'
+        param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
+
+        cv = 5
+        scoring = "f1_weighted"
+        clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
+        clf.fit(training_data, y_train)
+
+        # find the accuracy of the classifier using 5-fold cross-validation
+        scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5)
+
+        # return the mean of the 5 folds
+        return scores.mean()
 
 
 def classify(testing_data, targets, clf):

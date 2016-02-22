@@ -5,7 +5,7 @@ from clean_up import clean_directories
 from chunk import chunk_dir
 from compute_fingerprint import compute_all_fingerprints
 from combine_chunks import combine_chunks
-from svm import train_svm, svm_accuracy, store_classifier, load_classifier
+from svm import train_svm, svm_accuracy, store_classifier, load_classifier, find_classifier_accuracy
 import constants
 
 if __name__ == "__main__":
@@ -29,20 +29,7 @@ if __name__ == "__main__":
     print "training"
     training_data = []
     targets = []
-    clf, test_data, test_targets = train_svm(training_data, targets)
-    print (time.time() - last_time)
-    last_time = time.time()
-    print "storing"
-    store_classifier(clf)
-    print (time.time() - last_time)
-    last_time = time.time()
-
-    print "loading"
-    clf = load_classifier()
-    print (time.time() - last_time)
-    last_time = time.time()
-    print "testing"
-    accuracy = svm_accuracy(clf, test_data, test_targets)
+    accuracy = find_classifier_accuracy(training_data, targets)
     print (time.time() - last_time)
     last_time = time.time()
     print "accuracy:" + str(accuracy)
