@@ -48,11 +48,6 @@ def train_svm(training_data, targets):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        # if constants.CSV is true,
-        # reads from csv and overwrites given values for training_data and targets
-        if constants.CSV:
-            training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
-
         assert len(training_data) == len(targets), \
         'there are %r items in the target list and, but %r items in the list of training data' \
         % (len(targets), len(training_data))
@@ -90,11 +85,6 @@ def find_classifier_accuracy(training_data, targets):
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-
-        # if constants.CSV is true,
-        # reads from csv and overwrites given values for training_data and targets
-        if constants.CSV:
-            training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
 
         assert len(training_data) == len(targets), \
         'there are %r items in the target list and, but %r items in the list of training data' \
