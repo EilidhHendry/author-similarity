@@ -39,17 +39,29 @@ def read_csv(fingerprint_file):
     return training_data, target_data
 
 # We train the SVM every time a new text/author is added to the system
-def train_svm():
+def train_svm(training_data, targets):
+    """
+    :param training_data: list of lists of floats representing fingerprint
+    :param targets: list of strings representing target values (author name)
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
+
+        # if constants.CSV is true,
+        # reads from csv and overwrites given values for training_data and targets
+        if constants.CSV:
+            training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
+
+        assert len(training_data) == len(targets), \
+        'there are %r items in the target list and, but %r items in the list of training data' \
+        % (len(targets), len(training_data))
 
         #scale the input data
         scaled_training_data = scale(training_data)
 
         #Split the data into training and validation set
         X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
-
+        print y_train
         print "Feature space holds %d observations and %d features" % X_train.shape
         c_range = numpy.logspace(-2,2,40)
 
@@ -60,19 +72,7 @@ def train_svm():
 
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
         clf.fit(X_train, y_train)
-        """
-        selector_svm = svm.SVC()
-        selector_svm.set_params(C=clf.best_params_['C'], kernel = 'linear')
-        selector = RFE(selector_svm, step=1)
-        selector = selector.fit(X_train, y_train)
-        print selector.support_
-        print selector.ranking_
 
-        pipe = Pipeline([('feature_selection', selector), ('classification', clf)])
-        pipe.fit(X_train, y_train)
-
-        return pipe, X_test, y_test
-        """
         return clf, X_test, y_test
 
 def store_classifier(classifier, output_file_path=constants.MODEL_PATH):
@@ -84,13 +84,10 @@ def load_classifier(classifier_file_path=constants.MODEL_PATH):
     return classifier
 
 
-def classify(test_file, clf):
+def classify(testing_data, targets, clf):
     """
     Classify test data using trained classifier. Prints list of target and corresponding prediction.
     """
-
-    # read csv file, split into numerical testing data and targets
-    testing_data, targets = read_csv(test_file)
 
     # grab probabilities for each author in the system
     test_probs = clf.predict_proba(testing_data)
@@ -126,17 +123,3 @@ def svm_accuracy(classifier, test_data, test_targets):
         scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
         # return the mean of the 5 folds
         return scores.mean()
-
-
-if __name__ == '__main__':
-    # Parse combined finger print
-    training_data, targets = read_csv(constants.COMBINED_FINGERPRINT_FILE_PATH)
-    # Train the classifier
-    clf, _, _ = train_svm(training_data, targets)
-    # Store the classifier, and load again for fun
-    store_classifier(clf, constants.MODEL_PATH)
-    clf = load_classifier(constants.MODEL_PATH)
-
-    # Make predictions about authorship
-    test_path = "data/fingerprint_output/steinbeck/eastofeden/0002.csv"
-    classify(test_path, clf)

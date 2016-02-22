@@ -6,6 +6,7 @@ from chunk import chunk_dir
 from compute_fingerprint import compute_all_fingerprints
 from combine_chunks import combine_chunks
 from svm import train_svm, svm_accuracy, store_classifier, load_classifier
+import constants
 
 if __name__ == "__main__":
     last_time = time.time()
@@ -25,9 +26,10 @@ if __name__ == "__main__":
     combine_chunks()
     print (time.time() - last_time)
     last_time = time.time()
-
     print "training"
-    clf, test_data, test_targets = train_svm()
+    training_data = []
+    targets = []
+    clf, test_data, test_targets = train_svm(training_data, targets)
     print (time.time() - last_time)
     last_time = time.time()
     print "storing"
