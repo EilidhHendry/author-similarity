@@ -6,6 +6,8 @@ import string
 
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
+word_tokenizer = nltk.tokenize.WordPunctTokenizer()
+sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
 def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, chunk_as_string=None):
@@ -92,7 +94,6 @@ def tokenize_words(input_chunk):
     :param input_chunk: string
     :return: list
     """
-    word_tokenizer = nltk.tokenize.WordPunctTokenizer()
     return word_tokenizer.tokenize(input_chunk)
 
 
@@ -102,7 +103,6 @@ def tokenize_sentences(input_chunk):
     :param input_chunk: string
     :return: list of lists
     """
-    sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
     return [tokenize_words(sentence) for sentence in sentence_tokenizer.tokenize(input_chunk)]
 
 
@@ -185,14 +185,14 @@ def get_tag_list(fingerprint_fields):
     for field in fingerprint_fields:
         if field.endswith(tag_end):
             tag = field.replace(tag_end, "")
-            if tag.endswith("_dollar"):
-                tag = tag.replace("_dollar", "$")
+            if tag.endswith("_possessive"):
+                tag = tag.replace("_possessive", "$")
             tag_list.append(tag)
     return tag_list
 
 def tag_to_field(tag):
     if tag.endswith('$'):
-        tag = tag.replace('$', "_dollar")
+        tag = tag.replace('$', "_possessive")
     tag+='_pos_relative_frequency'
     return tag
 
@@ -214,8 +214,6 @@ def get_pos_counts(tagged_text, tag_list):
         if tag in tag_list:
             final_pos_distribution[tag_to_field(tag)] = float(count)/length_tagged_text
 
-    # create list of results in order to preserve tag list ordering
-    #ordered_pos_distributions = [final_pos_distribution[tag] for tag in tag_list]
     return final_pos_distribution
 
 
@@ -246,9 +244,6 @@ def get_function_word_distribution(tagged_text, word_list):
     for word, count in word_fd.iteritems():
         if word in word_list:
             word_list_dict[word+'_relative_frequency'] = float(count)/length_tagged_text
-
-    # create list of results in order to preserve function word list ordering
-    # ordered_func_word_distributions = [word_list_dict[word] for word in word_list]
 
     return word_list_dict
 
@@ -296,5 +291,5 @@ if __name__ == '__main__':
     author = 'hemingway'
     title = 'completeshortstories'
     chunk_name = '0000.txt'
-    print fingerprint_text(author, title, chunk_name, 
+    print fingerprint_text(author, title, chunk_name,
                                   chunk_as_path='data/chunks/hemingway/completeshortstories/0000.txt')
