@@ -12,6 +12,7 @@ from sklearn.pipeline import Pipeline
 import warnings
 
 import constants
+import util
 
 
 def scale(training_data):
@@ -113,14 +114,26 @@ def find_classifier_accuracy(training_data, targets):
         return scores.mean()
 
 
-def classify(testing_data, clf):
+def classify_single_fingerprint(fingerprint_dictionary, clf):
     """
     Classify test data using trained classifier. Prints list of lists containing probabilities.
     """
+    fingerprint_list = util.dictionary_to_list(fingerprint_dictionary)
+    # grab probabilities for each author which the classifier is trained on
+    predicted_probabilities = clf.predict_proba([fingerprint_list])[0]
+    return predicted_probabilities
 
-    # grab probabilities for each author in the system
-    test_probs = clf.predict_proba(testing_data)
-    print test_probs
+
+def classify_multiple_fingerprints(fingerprints_list, clf):
+    """
+    Takes a list of dictionaries representing fingerprints, returns list of predictions.
+    """
+    classifier_input = []
+    for fingerprint in fingerprints_list:
+        classifier_input.append(util.dictionary_to_list(fingerprint))
+
+    predicted_probabilities = clf.predict_proba(classifier_input)
+    return predicted_probabilities
 
 
 def evaluate_svm(classifier, test_data, test_targets):
