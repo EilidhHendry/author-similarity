@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from models import Chunk
+from models import Chunk, Classifier
 
 
 def index(request):
@@ -18,4 +18,18 @@ def all_chunks(request):
         "fingerprints": fingerprints,
     }
     response = JsonResponse(result)
+    return response
+
+def classify(request):
+    text = ""
+    text_key = 'text'
+    if (text_key in request.POST):
+        text = str(request.POST[text_key])
+    if (text_key in request.GET):
+        text = str(request.GET[text_key])
+
+    system_classifier = Classifier.objects.first()
+    result = {}
+    results = system_classifier.classify(text)
+    response = JsonResponse(results, safe=False)
     return response

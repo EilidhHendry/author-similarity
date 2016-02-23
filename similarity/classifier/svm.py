@@ -96,7 +96,6 @@ def find_classifier_accuracy(training_data, targets):
         #Split the data into training and validation set
         training_data, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
 
-        print "Feature space holds %d observations and %d features" % training_data.shape
         c_range = numpy.logspace(-2,2,40)
 
         print 'Tuning hyperparameters for precision'
@@ -120,8 +119,18 @@ def classify_single_fingerprint(fingerprint_dictionary, clf):
     """
     fingerprint_list = util.dictionary_to_list(fingerprint_dictionary)
     # grab probabilities for each author which the classifier is trained on
-    predicted_probabilities = clf.predict_proba([fingerprint_list])[0]
-    return predicted_probabilities
+    predicted_probabilities_ndarray = clf.predict_proba([fingerprint_list])[0]
+    predicted_probabilities = predicted_probabilities_ndarray.tolist()
+    labels = clf.best_estimator_.classes_.tolist()
+
+    results = []
+    for index in range(len(labels)):
+        result = {
+            "label": labels[index],
+            "probability":  predicted_probabilities[index]
+        }
+        results.append(result)
+    return results
 
 
 def classify_multiple_fingerprints(fingerprints_list, clf):

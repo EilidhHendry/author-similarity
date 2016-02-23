@@ -237,3 +237,12 @@ class Classifier(models.Model):
         clf = classifier.svm.train_svm(fingerprints, authors)
         classifier.svm.store_classifier(clf)
         self.status = "untrained"
+
+    def classify(self, text):
+        author = "author"
+        book_title = "title"
+        chunk_name = "chunk_name"
+        fingerprint = classifier.compute_fingerprint.fingerprint_text(author, book_title, chunk_name, chunk_as_string=text)
+        clf = classifier.svm.load_classifier()
+        results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
+        return results
