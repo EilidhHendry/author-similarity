@@ -221,7 +221,7 @@ CLASSIFIER_STATUS_CHOICES = (
 
 class Classifier(models.Model):
     last_trained = models.DateTimeField(auto_now=True, auto_now_add=False)
-    status = models.CharField(max_length=10, choices=CLASSIFIER_STATUS_CHOICES)
+    status = models.CharField(max_length=10, choices=CLASSIFIER_STATUS_CHOICES, default="untrained")
 
     def __unicode__(self):
         return u"Classifier"
