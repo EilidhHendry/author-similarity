@@ -1,8 +1,10 @@
 from django.db import models
+
 import classifier.constants
 import classifier.clean_up
 import classifier.chunk
 import classifier.compute_fingerprint
+import classifier.svm
 from classifier.util import generate_directory_name
 
 
@@ -209,3 +211,29 @@ class Chunk(models.Model):
     JJS_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     JJR_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     UH_pos_relative_frequency      = models.FloatField(null=True, blank=True)
+
+
+CLASSIFIER_STATUS_CHOICES = (
+    ('untrained', 'untrained'),
+    ('trained', 'trained'),
+    ('training', 'training'),
+)
+
+class Classifier(models.Model):
+    last_trained = models.DateTimeField(auto_now=True, auto_now_add=False)
+    status = models.CharField(max_length=10, choices=CLASSIFIER_STATUS_CHOICES)
+
+    def __unicode__(self):
+        return u"Classifier"
+
+    def train(self):
+        self.status = "training"
+        chunks = Chunk.objects.all()
+        authors = []
+        fingerprints = []
+        for chunk in chunks:
+            authors.append(chunk.author.name)
+            fingerprints.append(chunks[0].get_fingerprint())
+        clf = classifier.svm.train_svm(fingerprints, authors)
+        classifier.svm.store_classifier(clf)
+        self.status = "untrained"

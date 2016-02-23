@@ -55,7 +55,6 @@ def train_svm(training_data, targets):
         #scale the input data
         scaled_training_data = scale(training_data)
 
-        print "Feature space holds %d observations and %d features" % training_data.shape
         c_range = numpy.logspace(-2,2,40)
 
         print 'Tuning hyperparameters for precision'
