@@ -113,9 +113,9 @@ def find_classifier_accuracy(training_data, targets):
         return scores.mean()
 
 
-def classify(testing_data, targets, clf):
+def classify(testing_data, clf):
     """
-    Classify test data using trained classifier. Prints list of target and corresponding prediction.
+    Classify test data using trained classifier. Prints list of lists containing probabilities.
     """
 
     # grab probabilities for each author in the system
