@@ -46,15 +46,13 @@ def train_svm(training_data, targets):
     :param training_data: list of lists of floats representing fingerprint
     :param targets: list of strings representing target values (author name)
     """
+
+    assert len(training_data) == len(targets), \
+    'there are %r items in the target list and, but %r items in the list of training data' \
+    % (len(targets), len(training_data))
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-
-        assert len(training_data) == len(targets), \
-        'there are %r items in the target list and, but %r items in the list of training data' \
-        % (len(targets), len(training_data))
-
-        #scale the input data
-        scaled_training_data = scale(training_data)
 
         c_range = numpy.logspace(-2,2,40)
 
@@ -64,6 +62,14 @@ def train_svm(training_data, targets):
         scoring = "f1_weighted"
 
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
+
+        try:
+            #scale the input data
+            scaled_training_data = scale(training_data)
+        except ValueError:
+            print 'no training data'
+            return clf
+            
         clf.fit(training_data, targets)
 
         return clf
