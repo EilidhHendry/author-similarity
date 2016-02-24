@@ -1,10 +1,27 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from models import Chunk, Classifier
+from forms import InputForm
 
 
 def index(request):
-    return render(request, 'similarity/base.html')
+    input_file=""
+    #TODO: work with files
+    if request.method == 'POST':
+        form = InputForm(request.POST, request.FILES)
+        if form.is_valid():
+            if form.cleaned_data['input_file']:
+                input_file = uploaded_file(form.cleaned_data.get('input_file'))
+            return classify(request)
+    else:
+        form = InputForm(initial={'text': 'text here'})
+    return render(request, 'similarity/base.html', {'form': form})
+
+def uploaded_file(request):
+    with open(f) as input_file:
+        for chunk in f.chunks():
+            input_file.write(chunk)
+    return input_file
 
 def all_chunks(request):
     chunks = Chunk.objects.all()
@@ -31,5 +48,6 @@ def classify(request):
     system_classifier = Classifier.objects.first()
     result = {}
     results = system_classifier.classify(text)
+    results.append(text)
     response = JsonResponse(results, safe=False)
     return response

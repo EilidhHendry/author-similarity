@@ -7,9 +7,11 @@
         <link rel='stylesheet' type='text/css' href="{% static 'similarity/index.css' %}" />
     </head>
     <body>
-        <div id="editor" contenteditable=true>
-            Hello, World!
-        </div>
+        <form encrypt="multipart/form-data" name="{{ form.form_name }}" method="post" action=".">
+        {% csrf_token %}
+            {{ form }}
+        <input type="submit" value="Submit">
+        </form>
         <script type="text/javascript" src="{% static 'similarity/index.js' %}"></script>
     </body>
 </html>
