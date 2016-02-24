@@ -51,6 +51,13 @@ def train_svm(training_data, targets):
     'there are %r items in the target list and, but %r items in the list of training data' \
     % (len(targets), len(training_data))
 
+    try:
+        #scale the input data
+        scaled_training_data = scale(training_data)
+    except ValueError:
+        print 'no training data'
+        return None
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
@@ -63,13 +70,6 @@ def train_svm(training_data, targets):
 
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
 
-        try:
-            #scale the input data
-            scaled_training_data = scale(training_data)
-        except ValueError:
-            print 'no training data'
-            return clf
-            
         clf.fit(training_data, targets)
 
         return clf
