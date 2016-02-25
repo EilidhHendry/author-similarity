@@ -7,8 +7,5 @@ class InputForm(forms.Form):
     def clean(self):
         text = self.cleaned_data['text']
         input_file = self.cleaned_data['input_file']
-
         if not text and not input_file:
-            raise forms.ValidationError(
-            'require text or file'
-            )
+            raise forms.ValidationError('require text or file')
