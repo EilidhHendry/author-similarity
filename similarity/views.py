@@ -15,7 +15,7 @@ def index(request):
                 text = input_file.read()
             elif form.cleaned_data.get('text'):
                 text = form.cleaned_data.get('text')
-            return classify_text(text)
+            return classify_text(text.encode('utf8'))
     else:
         form = InputForm(initial={'text': 'text here'})
     return render(request, 'similarity/base.html', {'form': form})
