@@ -14,6 +14,22 @@ class Author(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+    def get_average_child_chunk_fingerprint(self):
+        from django.db.models import Q
+        child_chunks = Chunk.objects.all().filter(author=self)
+        chunks_length = len(child_chunks)
+
+        average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
+
+        for chunk in child_chunks:
+            chunk_fingerprint_dict = {field_name: getattr(chunk, field_name) for field_name in average_chunk_fingerprint.keys() }
+            for key, value in chunk_fingerprint_dict.items():
+                average_chunk_fingerprint[key]+=value
+
+        for key, value in average_chunk_fingerprint.items():
+            average_chunk_fingerprint[key]=float(value)/chunks_length
+        return average_chunk_fingerprint
+
 
 def create_text_preprocessed_path(self, filename=""):
     author_name = generate_directory_name(self.author.name)
@@ -77,12 +93,6 @@ class Chunk(models.Model):
         path = create_chunk_upload_path(chunk)
         chunk.chunk_file.name = path
         return chunk
-
-    def get_fingerprint(self):
-        fields = []
-        for (field_index, field_name) in enumerate(classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
-            fields.append(getattr(self, field_name))
-        return fields
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)
@@ -245,4 +255,8 @@ class Classifier(models.Model):
         fingerprint = classifier.compute_fingerprint.fingerprint_text(author, book_title, chunk_name, chunk_as_string=text)
         clf = classifier.svm.load_classifier()
         results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
+        for result in results:
+            author = Author.objects.get(name=result['label'])
+            average_fingerprint = author.get_average_child_chunk_fingerprint()
+            result['average_fingerprint'] = average_fingerprint
         return results
