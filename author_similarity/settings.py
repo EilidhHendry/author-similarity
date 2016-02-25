@@ -108,5 +108,5 @@ MEDIA_ROOT = BASE_DIR + "/"
 # Try to load local settings
 try:
     from local_settings import *
-except ImportErrror:
+except ImportError:
     pass
