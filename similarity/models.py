@@ -249,14 +249,21 @@ class Classifier(models.Model):
         self.status = "untrained"
 
     def classify(self, text):
+        clf = classifier.svm.load_classifier()
+
         author = "author"
         book_title = "title"
         chunk_name = "chunk_name"
         fingerprint = classifier.compute_fingerprint.fingerprint_text(author, book_title, chunk_name, chunk_as_string=text)
-        clf = classifier.svm.load_classifier()
-        results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
-        for result in results:
-            author = Author.objects.get(name=result['label'])
+
+        author_results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
+        for author_result in author_results:
+            author = Author.objects.get(name=author_result['label'])
             average_fingerprint = author.get_average_child_chunk_fingerprint()
-            result['average_fingerprint'] = average_fingerprint
-        return results
+            author_result['fingerprint'] = average_fingerprint
+
+        result = {}
+        result['fingerprint'] = fingerprint
+        result['input'] = text
+        result['authors'] = author_results
+        return result

@@ -33,7 +33,6 @@ def classify_text(text):
     text = clean_up.clean_unicode(text)
     system_classifier = Classifier.objects.first()
     result = {}
-    results = system_classifier.classify(text)
-    results.append(text)
-    response = JsonResponse(results, safe=False)
+    result = system_classifier.classify(text)
+    response = JsonResponse(result)
     return response
