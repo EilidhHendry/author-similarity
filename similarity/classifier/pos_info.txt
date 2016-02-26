@@ -1,0 +1,79 @@
+NLTK TAGLIST MEANINGS
+
+CC: conjunction e.g. and
+DT: determiner e.g. all
+EX: existential there e.g. there
+IN: preposition or conjunction, subordinating e.g. astride ***
+JJ: adjective or numeral, ordinal e.g. third, ill-mannered
+JJR: adjective, comparative, e.g. braver
+JJS: adjective, superlative, e.g. calmest
+MD: modal auxiliary verb, e.g. can, cannot
+NN: noun, common, singular or mass, e.g. cabbage
+NNP: noun, proper, singular, e.g. Motown
+NNPS: noun, proper, plural, e.g. Americans
+NNS: noun, common, plural, e.g. undergraduates
+PDT: pre-determiner, e.g. all
+PRP: pronoun, personal, e.g. hers
+PRP$: pronoun, possessive, e.g. her
+RB: adverb, e.g. occasionally
+RBR: adverb, comparative, e.g. further
+RP: particle, e.g. aboard ****
+TO: “to” as preposition or infinitive marker
+UH: interjection, e.g. Goodbye
+VB: verb, base form, e.g. ask
+VBD: verb, past tense, e.g. dipped
+VBG: verb, present participle or gerund, e.g. telegraphing
+VBN: verb, past participle, e.g. dilapidated
+VBP: verb, present tense, not 3rd person singular, e.g. predominate
+VBZ: verb, present tense, 3rd person singular, e.g. bases
+WDT: WH-determiner, e.g. that, what
+WP: WH-pronoun, e.g. that, what
+WP$: WH-pronoun, possessive, e.g. whose
+WRB: Wh-adverb, e.g. how
+$: dollar
+‘’: closing quotation mark
+(: opening parenthesis
+): closing parenthesis
+,: comma
+—: dash
+.: sentence terminator
+:: colon or ellipsis
+`: opening quotation mark
+CD: numeral, cardinal
+FW: foreign word
+LS: list item marker
+POS: genitive marker, e.g. ‘ ’s
+SYM: symbol
+
+
+
+9 MAIN POS GROUPS:
+Verb: VB, VBD, VBG, VBN, VBP, VBZ, MD
+Noun: NN, NNP, NNPS, NNS
+Adjective: JJ, JJR, JJS
+Determiner: DT, PDT, WDT,
+Adverb: RB, RBR, WRB
+Pronoun: PRP, PRP$, WP, WP$, EX
+Preposition: TO,
+Conjunction: CC
+Interjection: UH
+
+AMBIGUOUS:
+IN: preposition or conjunction, subordinating e.g. astride, among, upon, whether, out, inside, pro
+RP: particle, e.g. aboard, about, across, along, apart
+
+OTHER:
+$: dollar
+‘’: closing quotation mark
+(: opening parenthesis
+): closing parenthesis
+,: comma
+—: dash
+.: sentence terminator
+:: colon or ellipsis
+`: opening quotation mark
+CD: numeral, cardinal
+FW: foreign word
+LS: list item marker
+POS: genitive marker, e.g. ‘ ’s
+SYM: symbol
