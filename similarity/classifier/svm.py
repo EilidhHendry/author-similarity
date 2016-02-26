@@ -100,7 +100,7 @@ def find_classifier_accuracy(training_data, targets):
         scaled_training_data = scale(training_data)
 
         #Split the data into training and validation set
-        training_data, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
+        X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
 
         c_range = numpy.logspace(-2,2,40)
 
@@ -110,7 +110,7 @@ def find_classifier_accuracy(training_data, targets):
         cv = 5
         scoring = "f1_weighted"
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
-        clf.fit(training_data, y_train)
+        clf.fit(X_train, y_train)
 
         # find the accuracy of the classifier using 5-fold cross-validation
         scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5)
