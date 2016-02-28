@@ -7,9 +7,7 @@ class ChunkInline(admin.StackedInline):
     model = Chunk
 
 class TextAdmin(admin.ModelAdmin):
-    inlines = [
-        ChunkInline,
-    ]
+    pass
 
 admin.site.register(Text, TextAdmin)
 
