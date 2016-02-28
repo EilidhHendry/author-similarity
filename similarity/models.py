@@ -86,6 +86,9 @@ class Chunk(models.Model):
     def get_fingerprint_dict(self):
         return {field_name: getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS }
 
+    def get_fingerprint_list(self):
+	return [getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS]
+
     @classmethod
     def create(cls, text, chunk_number, fingerprint):
         chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
@@ -246,7 +249,7 @@ class Classifier(models.Model):
         fingerprints = []
         for chunk in chunks:
             authors.append(chunk.author.name)
-            fingerprints.append(chunks[0].get_fingerprint())
+            fingerprints.append(chunk.get_fingerprint_list())
         clf = classifier.svm.train_svm(fingerprints, authors)
         classifier.svm.store_classifier(clf)
         self.status = "untrained"
