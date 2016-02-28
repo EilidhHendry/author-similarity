@@ -22,7 +22,7 @@ class Author(models.Model):
         average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
 
         for chunk in child_chunks:
-            chunk_fingerprint_dict = {field_name: getattr(chunk, field_name) for field_name in average_chunk_fingerprint.keys() }
+            chunk_fingerprint_dict = chunk.get_fingerprint_dict()
             for key, value in chunk_fingerprint_dict.items():
                 average_chunk_fingerprint[key]+=value
 
@@ -82,6 +82,9 @@ class Chunk(models.Model):
 
     def __unicode__(self):
         return u'%s (%i)' % (self.text, self.text_chunk_number)
+
+    def get_fingerprint_dict(self):
+        return {field_name: getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS }
 
     @classmethod
     def create(cls, text, chunk_number, fingerprint):
