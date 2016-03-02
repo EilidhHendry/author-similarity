@@ -11,7 +11,8 @@ def generate_preprocessed_directory(author):
 
 def clean_unicode(input_string):
     clean_string = input_string.strip().replace("—", "-").replace('“', '"').replace('”', '"').replace("’", "'")\
-                    .replace("é", "e").replace("í", 'i').replace("ó", "o").replace("…","...")
+                    .replace("é", "e").replace("í", 'i').replace("ì", 'i').replace("ó", "o").replace("…","...")\
+                    .replace("ä", "a").decode('ascii','ignore').encode('utf-8')
     return clean_string
 
 def clean_file(input_path, author, title):

@@ -57,13 +57,15 @@ class Text(models.Model):
 
         classifier.clean_up.clean_file(self.text_file.path, self.author.name, self.name)
         cleaned_text_path = create_text_preprocessed_path(self)
-        classifier.chunk.chunk_text(cleaned_text_path, self.author.name, self.name)
 
         text_chunks_path = classifier.chunk.generate_chunk_path(self.author.name, self.name)
-        fingerprints = classifier.compute_fingerprint.compute_all_fingerprints(text_chunks_path)
-        for (chunk_number, fingerprint) in enumerate(fingerprints):
+        chunk_number = 0
+        for chunk in classifier.chunk.chunk_text(cleaned_text_path):
+            fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk)
             theChunk = Chunk.create(self, chunk_number, fingerprint)
             theChunk.save()
+            chunk_number+=1
+
 
 
 def create_chunk_upload_path(self, filename=""):

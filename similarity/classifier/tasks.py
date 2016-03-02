@@ -11,9 +11,9 @@ def clean_text(input_path, author, title):
     return clean_up.clean_file(input_path, author, title)
 
 @app.task
-def chunk_text(input_path, author, title):
-    return chunk.chunk_text(input_path, author, title)
+def chunk_text(input_path):
+    return chunk.chunk_text(input_path)
 
 @app.task
-def compute_fingerprint(chunk_as_path=None, chunk_as_string=None):
-    return fingerprint_text(chunk_as_path, chunk_as_string)
+def compute_fingerprint(chunk):
+    return fingerprint_text(chunk)

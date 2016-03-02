@@ -1,5 +1,5 @@
 import constants
-from util import generate_directory_name
+from util import generate_directory_name, tokenize_sentences
 
 import string
 import os
@@ -15,62 +15,43 @@ def generate_text_path(author, title):
     output_directory = constants.PLAINTEXT_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
 
+def chunk_text(input_path):
 
-def chunk_text(input_path, author, title):
-    chunk_output_directory = generate_chunk_path(author, title) + "/"
-    try:
-        os.makedirs(chunk_output_directory)
-    except:
-        pass
+    with open(input_path) as in_file:
+        input_chunk = in_file.read()
 
-     # get the directory name and text name from file path
-    text_path = os.path.dirname(input_path)
-    text_name = os.path.basename(input_path)
+        # tokenise into sentences
+        sentences = tokenize_sentences(input_chunk)
 
-    # create an nltk corpus from the input file
-    corpus = nltk.corpus.reader.PlaintextCorpusReader(text_path, text_name)
+        current_chunk = []
+        current_chunk_word_count = 0
+        for sentence in sentences:
+            # TODO: Don't just remove non-ascii
+            # add the sentence to the current chunk and remove non-ascii characters
+            current_chunk = current_chunk + sentence
 
-    # tokenise into sentences
-    sentences = corpus.sents()
+            for word in sentence:
 
-    current_chunk = []
-    current_chunk_word_count = 0
-    file_count = 0
-    for sentence in sentences:
-        # TODO: Don't just remove non-ascii
-        # add the sentence to the current chunk and remove non-ascii characters
-        current_chunk = current_chunk + [word.encode('ascii', 'ignore') for word in sentence]
+                # increment the word count if not whitespace
+                if word not in string.whitespace:
+                    current_chunk_word_count += 1
 
-        for word in sentence:
+                if current_chunk_word_count == constants.CHUNK_SIZE:
 
-            # increment the word count if not whitespace
-            if word not in string.whitespace:
-                current_chunk_word_count += 1
+                    # first join some punctuation to the previous word (returns generator object)
+                    punctuation_joined_chunk = join_punctuation(current_chunk)
 
-            if current_chunk_word_count == constants.CHUNK_SIZE:
+                    # then convert list of words to string
+                    chunk = ' '.join(punctuation_joined_chunk)
 
-                # first join some punctuation to the previous word (returns generator object)
-                punctuation_joined_chunk = join_punctuation(current_chunk)
+                    yield chunk
 
-                # then convert list of words to string
-                chunk = ' '.join(punctuation_joined_chunk)
+                    # start over for the next chunk
+                    current_chunk = []
+                    current_chunk_word_count = 0
 
-                # create new file in the output directory with 0 padding
-                output_file = open(chunk_output_directory+"{0:04d}.txt".format(file_count),'w')
-                file_count+=1
-
-                # print the current chunk to file
-                print>>output_file, chunk
-
-                # start over for the next chunk
-                current_chunk = []
-                current_chunk_word_count = 0
-
-    # print the remaining text to a new file
-    final_chunk = ' '.join(current_chunk)
-    output_file = open(chunk_output_directory+"{0:04d}.txt".format(file_count),'w')
-    print>>output_file, final_chunk
-
+        final_chunk = ' '.join(current_chunk)
+        yield final_chunk
 
 def join_punctuation(word_list):
     # note only includes the punctuation marks you want to join to prev word
@@ -95,20 +76,18 @@ def chunk_dir(root_path=constants.PREPROCESSED_PATH):
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':  # prevent hidden files e.g .DS_Store
-                author = dir_name.split('/')[-1]
-                title = file.split('.')[0]
                 path = os.path.join(dir_name, file)
-                to_chunk.append((path, author, title))
+                to_chunk.append(path)
 
     if (constants.PARALLEL):
         import celery
         import tasks
-        group = celery.group((tasks.chunk_text.s(current_file_path, author, title) for (current_file_path, author, title) in to_chunk))
+        group = celery.group((tasks.chunk_text.s(current_file_path) for current_file_path in to_chunk))
         result = group()
         result.get()
     else:
-        for (current_file_path, author, title) in to_chunk:
-            chunk_text(current_file_path, author, title)
+        for current_file_path in to_chunk:
+            chunk_text(current_file_path)
 
 if __name__ == '__main__':
     chunk_dir(constants.PREPROCESSED_PATH)

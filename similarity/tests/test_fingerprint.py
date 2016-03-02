@@ -175,11 +175,9 @@ class FingerprintTest(unittest.TestCase):
     def test_fingerprint_text(self):
         empty_result = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
         test_texts = [
-            ({'chunk_as_string': ' ',
-              'chunk_as_path': None},
+            ({'chunk': ' '},
              empty_result),
-            ({'chunk_as_string': test_text,
-              'chunk_as_path': None},
+            ({'chunk': test_text},
              seuss_result_dictionary)
             ]
 
@@ -187,9 +185,7 @@ class FingerprintTest(unittest.TestCase):
             result_list = []
             fingerprint_list=[]
 
-            fingerprint = compute_fingerprint.fingerprint_text(
-                chunk_as_string=argument_dictionary['chunk_as_string'],
-                chunk_as_path=argument_dictionary['chunk_as_path'])
+            fingerprint = compute_fingerprint.fingerprint_text(argument_dictionary['chunk'])
             for field in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
                 result_list.append(result_dictionary[field])
                 fingerprint_list.append(fingerprint[field])

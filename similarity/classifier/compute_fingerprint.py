@@ -10,38 +10,24 @@ pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
 
-def fingerprint_text(chunk_as_path=None, chunk_as_string=None):
+def fingerprint_text(chunk):
     """
-    Can take a text as either a string or a path to file
-    :param chunk_as_path: if not None tries to read input_chunk_or_path as file
-    :param chunk_as_string: if not None takes input as string
+    :param chunk: takes input as string
     :return: list containing author name plus floats representing fingerprint
     """
-
-    if chunk_as_path:
-        try:
-            with open(chunk_as_path) as content_file:
-                text_content = content_file.read()
-        except IOError:
-            print 'could not open file'
-            raise
-    elif chunk_as_string:
-        text_content = chunk_as_string
-    else:
-        raise ValueError('Must provide values for either chunk_as_path or chunk_as_string')
 
     # dictionary to return calculated fingerprints
     results = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
 
     # tokenise the input text
-    words = tokenize_words(text_content)
+    words = tokenize_words(chunk)
 
     # find the length of the current chunk, if 0 return all 0s
     if len(words) == 0: return results
 
     # get avg_word_length, avg_sentence_length, lexical_diversity, percentage_punctuation
     # store results in dictionary
-    analyse_text_results = analyze_text(text_content)
+    analyse_text_results = analyze_text(chunk)
 
     for field_name in analyse_text_results.keys():
         if field_name in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
@@ -212,28 +198,3 @@ def get_function_word_distribution(tagged_text, word_list):
             word_list_dict[word+'_relative_frequency'] = float(count)/length_tagged_text
 
     return word_list_dict
-
-
-def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
-    to_fingerprint = []
-    for dir_name, sub_dirs, files in os.walk(root_path):
-        for file in files:
-            if file[0] != '.':  # prevent hidden files e.g .DS_Store
-                chunk_path = dir_name+'/'+file
-                to_fingerprint.append(chunk_path)
-
-    fingerprints = []
-    if (constants.PARALLEL):
-        import celery
-        import tasks
-        group = celery.group((tasks.compute_fingerprint.s(chunk_as_path=chunk_path) for chunk_path in to_fingerprint))
-        result = group()
-        fingerprints = result.get()
-    else:
-        for chunk_path in to_fingerprint:
-            fingerprints.append(fingerprint_text(chunk_as_path=chunk_path))
-    return fingerprints
-
-
-if __name__ == '__main__':
-    print fingerprint_text(chunk_as_path='similarity/classifier/data/chunks/hemingway/completeshortstories/0000.txt')
