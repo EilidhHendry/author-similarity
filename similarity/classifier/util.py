@@ -2,6 +2,10 @@ import textract
 import os
 import timeit
 import constants
+import nltk
+
+word_tokenizer = nltk.tokenize.WordPunctTokenizer()
+sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
 
 def generate_directory_name(name):
     directory_name = "".join([char.lower() for char in name if char.isalpha() or char.isdigit()]).rstrip()
@@ -43,3 +47,20 @@ def list_to_dictionary(fingerprint_list):
     for i, field in enumerate(constants.CHUNK_MODEL_FINGERPRINT_FIELDS):
         result_dictionary[field] = fingerprint_list[i]
     return result_dictionary
+
+def tokenize_words(input_chunk):
+    """
+    Takes string and returns list of tokens
+    :param input_chunk: string
+    :return: list
+    """
+    return word_tokenizer.tokenize(input_chunk)
+
+
+def tokenize_sentences(input_chunk):
+    """
+    Takes string and returns list of sentences containing lists of tokens
+    :param input_chunk: string
+    :return: list of lists
+    """
+    return [tokenize_words(sentence) for sentence in sentence_tokenizer.tokenize(input_chunk)]

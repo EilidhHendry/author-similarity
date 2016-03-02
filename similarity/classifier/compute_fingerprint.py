@@ -4,10 +4,9 @@ import nltk
 import csv
 import string
 
+from util import tokenize_words, tokenize_sentences
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
-word_tokenizer = nltk.tokenize.WordPunctTokenizer()
-sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
 def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, chunk_as_string=None):
@@ -87,23 +86,6 @@ def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, ch
         % (len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS), len(results.keys()))
 
     return results
-
-def tokenize_words(input_chunk):
-    """
-    Takes string and returns list of tokens
-    :param input_chunk: string
-    :return: list
-    """
-    return word_tokenizer.tokenize(input_chunk)
-
-
-def tokenize_sentences(input_chunk):
-    """
-    Takes string and returns list of sentences containing lists of tokens
-    :param input_chunk: string
-    :return: list of lists
-    """
-    return [tokenize_words(sentence) for sentence in sentence_tokenizer.tokenize(input_chunk)]
 
 
 def fingerprint_to_csv(fingerprint_dictionary, author_name, book_title, chunk_name):
