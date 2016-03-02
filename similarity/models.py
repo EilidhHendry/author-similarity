@@ -57,19 +57,11 @@ class Text(models.Model):
         tasks.process_text.delay(text_id)
 
 
-def create_chunk_upload_path(self, filename=""):
-    author_name = generate_directory_name(self.author.name)
-    text_name = generate_directory_name(self.text.name)
-    chunk_number = "{0:04d}.txt".format(self.text_chunk_number)
-    path = classifier.constants.CHUNKS_PATH + "/".join([author_name, text_name, chunk_number])
-    return path
-
 class Chunk(models.Model):
     author = models.ForeignKey('Author')
 
     text = models.ForeignKey('Text')
     text_chunk_number = models.IntegerField(null=True)
-    chunk_file = models.FileField(upload_to=create_chunk_upload_path, default=None, null=True, blank=True)
 
     def __unicode__(self):
         return u'%s (%i)' % (self.text, self.text_chunk_number)
@@ -85,7 +77,6 @@ class Chunk(models.Model):
         chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
         chunk.save()
         chunk_id = chunk.id
-        print chunk_id
         import tasks
         tasks.process_chunk.delay(chunk_id, chunk_text)
 

@@ -41,7 +41,6 @@ def process_text(text_id):
     cleaned_text_path = text.create_preprocessed_path()
 
     print "Chunking text..."
-    text_chunks_path = classifier.chunk.generate_chunk_path(text.author.name, text.name)
     chunk_number = 0
     for chunk_text in classifier.chunk.chunk_text(cleaned_text_path):
         print "Creating chunk: %s" % (str(chunk_number))

@@ -6,11 +6,6 @@ import os
 import nltk
 
 
-def generate_chunk_path(author, title):
-    output_directory = constants.CHUNKS_PATH + generate_directory_name(author) + "/" + generate_directory_name(title)
-    return output_directory
-
-
 def generate_text_path(author, title):
     output_directory = constants.PLAINTEXT_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
