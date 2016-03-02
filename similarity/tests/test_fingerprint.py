@@ -173,19 +173,12 @@ class FingerprintTest(unittest.TestCase):
             self.assertEquals(function_word_dist, result, msg=(tagged_test_sentence, function_word_dist, '!=', result))
 
     def test_fingerprint_text(self):
-        author_name = 'test_author'
         empty_result = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
         test_texts = [
-            ({'author_name': author_name,
-              'book_title': 'test_book',
-              'chunk_name': 'chunk_name',
-              'chunk_as_string': ' ',
+            ({'chunk_as_string': ' ',
               'chunk_as_path': None},
              empty_result),
-            ({'author_name': author_name,
-              'book_title': 'test_book',
-              'chunk_name': 'chunk_name',
-              'chunk_as_string': test_text,
+            ({'chunk_as_string': test_text,
               'chunk_as_path': None},
              seuss_result_dictionary)
             ]
@@ -195,7 +188,6 @@ class FingerprintTest(unittest.TestCase):
             fingerprint_list=[]
 
             fingerprint = compute_fingerprint.fingerprint_text(
-                argument_dictionary['author_name'], argument_dictionary['book_title'], argument_dictionary['chunk_name'],
                 chunk_as_string=argument_dictionary['chunk_as_string'],
                 chunk_as_path=argument_dictionary['chunk_as_path'])
             for field in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:

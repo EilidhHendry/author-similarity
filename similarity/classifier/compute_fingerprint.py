@@ -1,22 +1,22 @@
 import constants
 import os
 import nltk
-import csv
 import string
 
 from util import tokenize_words, tokenize_sentences
 
+
 pronounciation_dict = nltk.corpus.cmudict.dict()
 punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
 
-def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, chunk_as_string=None):
+
+def fingerprint_text(chunk_as_path=None, chunk_as_string=None):
     """
     Can take a text as either a string or a path to file
     :param chunk_as_path: if not None tries to read input_chunk_or_path as file
     :param chunk_as_string: if not None takes input as string
     :return: list containing author name plus floats representing fingerprint
     """
-    #TODO: remove author_name, book_title and chunk_name (required for csv writing)
 
     if chunk_as_path:
         try:
@@ -78,27 +78,11 @@ def fingerprint_text(author_name, book_title, chunk_name, chunk_as_path=None, ch
 
         results.update(pos_distribution)
 
-    if constants.CSV:
-        fingerprint_to_csv(results, author_name, book_title, chunk_name)
-
     assert len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS) == len(results.keys()), \
         'there are %r fields in constants.CHUNK_MODEL_FINGERPRINT_FIELDS, but results contain %r' \
         % (len(constants.CHUNK_MODEL_FINGERPRINT_FIELDS), len(results.keys()))
 
     return results
-
-
-def fingerprint_to_csv(fingerprint_dictionary, author_name, book_title, chunk_name):
-    # create csv writer object, output file and write headers to file
-    csv_writer = create_csv(author_name, book_title, chunk_name)
-
-    # loop through list of fields and append results in order
-    ordered_fingerprint_list = [author_name]
-    for field in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
-        ordered_fingerprint_list.append(fingerprint_dictionary[field])
-
-    # write list to csv file
-    csv_writer.writerow(ordered_fingerprint_list)
 
 
 def analyze_text(input_chunk):
@@ -230,48 +214,26 @@ def get_function_word_distribution(tagged_text, word_list):
     return word_list_dict
 
 
-def create_csv(author_name, book_title, file_name):
-    output_dir = constants.FINGERPRINTS_PATH
-
-    # create output file in output folder, with name of input folder
-    try:
-        os.makedirs(output_dir + author_name + '/' + book_title)
-    except:
-        pass
-
-    file_number = file_name.split('.')[0]
-    output_file = open(output_dir + author_name + '/' + book_title + '/' + file_number + '.csv', 'w')
-
-    # create csv writer object and write the fieldnames to first row
-    csv_writer = csv.writer(output_file, delimiter='\t')
-    csv_writer.writerow(['target'] + constants.CHUNK_MODEL_FINGERPRINT_FIELDS)
-    return csv_writer
-
 def compute_all_fingerprints(root_path=constants.CHUNKS_PATH):
     to_fingerprint = []
     for dir_name, sub_dirs, files in os.walk(root_path):
         for file in files:
             if file[0] != '.':  # prevent hidden files e.g .DS_Store
-                author = dir_name.split('/')[-2]
-                title = dir_name.split('/')[-1]
                 chunk_path = dir_name+'/'+file
-                to_fingerprint.append((author, title, file, chunk_path))
+                to_fingerprint.append(chunk_path)
 
     fingerprints = []
     if (constants.PARALLEL):
         import celery
         import tasks
-        group = celery.group((tasks.compute_fingerprint.s(author, title, file, chunk_as_path=chunk_path) for (author, title, file, chunk_path) in to_fingerprint))
+        group = celery.group((tasks.compute_fingerprint.s(chunk_as_path=chunk_path) for chunk_path in to_fingerprint))
         result = group()
         fingerprints = result.get()
     else:
-        for (author, title, file, chunk_path) in to_fingerprint:
-            fingerprints.append(fingerprint_text(author, title, file, chunk_as_path=chunk_path))
+        for chunk_path in to_fingerprint:
+            fingerprints.append(fingerprint_text(chunk_as_path=chunk_path))
     return fingerprints
 
+
 if __name__ == '__main__':
-    author = 'hemingway'
-    title = 'completeshortstories'
-    chunk_name = '0000.txt'
-    print fingerprint_text(author, title, chunk_name,
-                                  chunk_as_path='data/chunks/hemingway/completeshortstories/0000.txt')
+    print fingerprint_text(chunk_as_path='similarity/classifier/data/chunks/hemingway/completeshortstories/0000.txt')

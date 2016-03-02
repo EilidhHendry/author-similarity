@@ -13,14 +13,12 @@ PLAINTEXT_PATH = DATA_PATH + "texts/"
 PREPROCESSED_PATH = DATA_PATH + "preprocessed/"
 CHUNKS_PATH = DATA_PATH + "chunks/"
 FINGERPRINTS_PATH = DATA_PATH + "fingerprint_output/"
-COMBINED_FINGERPRINT_FILE_PATH = DATA_PATH + "combined_fingerprint/combined_fingerprints.csv"
 
 CHUNK_SIZE = 32000
 
 MODEL_PATH = DATA_PATH + "model/model.pkl"
 
 PARALLEL = False
-CSV = True
 
 POS_TAG_VERB = ["VB_pos_relative_frequency",  "VBD_pos_relative_frequency",  "VBG_pos_relative_frequency",  "VBN_pos_relative_frequency",  "VBP_pos_relative_frequency",  "VBZ_pos_relative_frequency",  "MD_pos_relative_frequency"]
 POS_TAG_NOUN = ["NN_pos_relative_frequency",  "NNP_pos_relative_frequency",  "NNPS_pos_relative_frequency",  "NNS_pos_relative_frequency"]

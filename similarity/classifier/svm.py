@@ -21,25 +21,6 @@ def scale(training_data):
     return training_data_scaled
 
 
-def read_csv(fingerprint_file):
-    """
-    Reads input csv file and creates matrix of numerical data and targets.
-    """
-
-    # read the csv file into a pandas array
-    data = pandas.read_csv(fingerprint_file, sep='\t', index_col=False)
-
-    # get the numerical data
-    num_data = data.ix[:,1:]
-
-    # get the training data and the targets
-    training_data = num_data.as_matrix()
-
-    target_data = data['target'].tolist()
-
-    return training_data, target_data
-
-
 # We train the SVM every time a new text/author is added to the system
 def train_svm(training_data, targets):
     """

@@ -260,7 +260,7 @@ class Classifier(models.Model):
         author = "author"
         book_title = "title"
         chunk_name = "chunk_name"
-        fingerprint = classifier.compute_fingerprint.fingerprint_text(author, book_title, chunk_name, chunk_as_string=text)
+        fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_as_string=text)
 
         author_results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
