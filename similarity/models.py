@@ -245,16 +245,9 @@ class Classifier(models.Model):
         return u"Classifier"
 
     def train(self):
-        self.status = "training"
-        chunks = Chunk.objects.all()
-        authors = []
-        fingerprints = []
-        for chunk in chunks:
-            authors.append(chunk.author.name)
-            fingerprints.append(chunk.get_fingerprint_list())
-        clf = classifier.svm.train_svm(fingerprints, authors)
-        classifier.svm.store_classifier(clf)
-        self.status = "untrained"
+        classifier_id = self.id
+        import tasks
+        tasks.train_classifier.delay(classifier_id)
 
     def classify(self, text):
         clf = classifier.svm.load_classifier()
