@@ -1,10 +1,7 @@
 from django.db import models
 
 import classifier.constants
-import classifier.clean_up
-import classifier.chunk
-import classifier.compute_fingerprint
-import classifier.svm
+from classifier import svm, compute_fingerprint
 from classifier.util import generate_directory_name
 
 
@@ -31,15 +28,9 @@ class Author(models.Model):
         return average_chunk_fingerprint
 
 
-def create_text_preprocessed_path(self, filename=""):
-    author_name = generate_directory_name(self.author.name)
-    text_name = generate_directory_name(self.name)
-    path = classifier.constants.PREPROCESSED_PATH + "/".join([author_name, text_name])
-    return path
-
-def create_text_upload_path(self, filename):
-    author_name = generate_directory_name(self.author.name)
-    text_name = generate_directory_name(self.name)
+def create_text_upload_path(text, filename):
+    author_name = generate_directory_name(text.author.name)
+    text_name = generate_directory_name(text.name)
     path = classifier.constants.PLAINTEXT_PATH + "/".join([author_name, text_name])
     return path
 
@@ -52,20 +43,18 @@ class Text(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
+    def create_preprocessed_path(self):
+        author_name = generate_directory_name(self.author.name)
+        text_name = generate_directory_name(self.name)
+        path = classifier.constants.PREPROCESSED_PATH + "/".join([author_name, text_name])
+        return path
+
     def save(self, *args, **kwargs):
         super(Text, self).save(*args, **kwargs)
+        text_id = self.id
 
-        classifier.clean_up.clean_file(self.text_file.path, self.author.name, self.name)
-        cleaned_text_path = create_text_preprocessed_path(self)
-
-        text_chunks_path = classifier.chunk.generate_chunk_path(self.author.name, self.name)
-        chunk_number = 0
-        for chunk in classifier.chunk.chunk_text(cleaned_text_path):
-            fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk)
-            theChunk = Chunk.create(self, chunk_number, fingerprint)
-            theChunk.save()
-            chunk_number+=1
-
+        import tasks
+        tasks.process_text.delay(text_id)
 
 
 def create_chunk_upload_path(self, filename=""):
@@ -98,7 +87,7 @@ class Chunk(models.Model):
         for key in fingerprint.keys():
             setattr(chunk, key, fingerprint[key])
         # set the FileField programatically, as it already exists on filesystem
-        path = create_chunk_upload_path(chunk)
+        path = create_chunk_upload_path(chunk, "")
         chunk.chunk_file.name = path
         return chunk
 
@@ -250,14 +239,14 @@ class Classifier(models.Model):
         tasks.train_classifier.delay(classifier_id)
 
     def classify(self, text):
-        clf = classifier.svm.load_classifier()
+        clf = svm.load_classifier()
 
         author = "author"
         book_title = "title"
         chunk_name = "chunk_name"
-        fingerprint = classifier.compute_fingerprint.fingerprint_text(text)
+        fingerprint = compute_fingerprint.fingerprint_text(text)
 
-        author_results = classifier.svm.classify_single_fingerprint(fingerprint, clf)
+        author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
             average_fingerprint = author.get_average_child_chunk_fingerprint()
