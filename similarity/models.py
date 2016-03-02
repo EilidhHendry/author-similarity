@@ -81,15 +81,13 @@ class Chunk(models.Model):
 	return [getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS]
 
     @classmethod
-    def create(cls, text, chunk_number, fingerprint):
+    def create(cls, text, chunk_number, chunk_text):
         chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
-        # set fingerprint, skip author column
-        for key in fingerprint.keys():
-            setattr(chunk, key, fingerprint[key])
-        # set the FileField programatically, as it already exists on filesystem
-        path = create_chunk_upload_path(chunk, "")
-        chunk.chunk_file.name = path
-        return chunk
+        chunk.save()
+        chunk_id = chunk.id
+        print chunk_id
+        import tasks
+        tasks.process_chunk.delay(chunk_id, chunk_text)
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)

@@ -31,6 +31,7 @@ def train_svm(training_data, targets):
     assert len(training_data) == len(targets), \
     'there are %r items in the target list and, but %r items in the list of training data' \
     % (len(targets), len(training_data))
+    print "Training classifier with %s chunks" % (str(len(training_data)))
 
     try:
         #scale the input data
@@ -52,6 +53,7 @@ def train_svm(training_data, targets):
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
 
         clf.fit(training_data, targets)
+        print "Trained classifier"
 
         return clf
 

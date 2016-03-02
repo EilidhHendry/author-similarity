@@ -3,6 +3,7 @@ from models import Text, Classifier, Chunk
 import classifier.clean_up
 import classifier.chunk
 import classifier.compute_fingerprint
+import classifier.svm
 
 app = Celery('author_similarity')
 from classifier import tasks
@@ -22,9 +23,9 @@ def train_classifier(classifier_id):
         authors.append(chunk.author.name)
         fingerprints.append(chunk.get_fingerprint_list())
     print "Training..."
-    clf = svm.train_svm(fingerprints, authors)
+    clf = classifier.svm.train_svm(fingerprints, authors)
     print "Storing..."
-    svm.store_classifier(clf)
+    classifier.svm.store_classifier(clf)
 
     system_classifier.status = "trained"
     system_classifier.save()
@@ -34,7 +35,6 @@ def train_classifier(classifier_id):
 def process_text(text_id):
     print "Processing the text, id: %s" % (str(text_id))
     text = Text.objects.get(pk=text_id)
-    print text
 
     print "Cleaning text..."
     classifier.clean_up.clean_file(text.text_file.path, text.author.name, text.name)
@@ -43,11 +43,21 @@ def process_text(text_id):
     print "Chunking text..."
     text_chunks_path = classifier.chunk.generate_chunk_path(text.author.name, text.name)
     chunk_number = 0
-    for chunk in classifier.chunk.chunk_text(cleaned_text_path):
-        print "Fingerprinting chunk: %s" % (str(chunk_number))
-        fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk)
-        theChunk = Chunk.create(text, chunk_number, fingerprint)
-        print "Saving chunk..."
-        theChunk.save()
+    for chunk_text in classifier.chunk.chunk_text(cleaned_text_path):
+        print "Creating chunk: %s" % (str(chunk_number))
+        chunk = Chunk.create(text, chunk_number, chunk_text)
+        print "Saved chunk: %s" % (str(chunk_number))
         chunk_number+=1
     print "Processed the text"
+
+@app.task
+def process_chunk(chunk_id, chunk_text):
+    print "Processing the chunk, id: %s" % (str(chunk_id))
+    chunk = Chunk.objects.get(pk=chunk_id)
+
+    # set fingerprint, skip author column
+    print "Fingerprinting chunk..."
+    fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
+    for key in fingerprint.keys():
+        setattr(chunk, key, fingerprint[key])
+    chunk.save()
