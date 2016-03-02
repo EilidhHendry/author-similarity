@@ -79,15 +79,8 @@ def chunk_dir(root_path=constants.PREPROCESSED_PATH):
                 path = os.path.join(dir_name, file)
                 to_chunk.append(path)
 
-    if (constants.PARALLEL):
-        import celery
-        import tasks
-        group = celery.group((tasks.chunk_text.s(current_file_path) for current_file_path in to_chunk))
-        result = group()
-        result.get()
-    else:
-        for current_file_path in to_chunk:
-            chunk_text(current_file_path)
+    for current_file_path in to_chunk:
+        chunk_text(current_file_path)
 
 if __name__ == '__main__':
     chunk_dir(constants.PREPROCESSED_PATH)

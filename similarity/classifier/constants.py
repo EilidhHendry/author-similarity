@@ -17,8 +17,6 @@ CHUNK_SIZE = 32000
 
 MODEL_PATH = DATA_PATH + "model/model.pkl"
 
-PARALLEL = False
-
 POS_TAG_VERB = ["VB_pos_relative_frequency",  "VBD_pos_relative_frequency",  "VBG_pos_relative_frequency",  "VBN_pos_relative_frequency",  "VBP_pos_relative_frequency",  "VBZ_pos_relative_frequency",  "MD_pos_relative_frequency"]
 POS_TAG_NOUN = ["NN_pos_relative_frequency",  "NNP_pos_relative_frequency",  "NNPS_pos_relative_frequency",  "NNS_pos_relative_frequency"]
 POS_TAG_ADJECTIVE = ["JJ_pos_relative_frequency",  "JJR_pos_relative_frequency",  "JJS_pos_relative_frequency"]

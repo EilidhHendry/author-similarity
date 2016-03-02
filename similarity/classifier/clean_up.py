@@ -39,12 +39,5 @@ def clean_directories(root_path=constants.PLAINTEXT_PATH):
                 path = os.path.join(dir_name, file)
                 to_preprocess.append((path, author, title))
 
-    if (constants.PARALLEL):
-        import celery
-        import tasks
-        group = celery.group((tasks.clean_text.s(current_file_path, author, title) for (current_file_path, author, title) in to_preprocess))
-        result = group()
-        result.get()
-    else:
-        for (current_file_path, author, title) in to_preprocess:
-            clean_file(current_file_path, author, title)
+    for (current_file_path, author, title) in to_preprocess:
+        clean_file(current_file_path, author, title)
