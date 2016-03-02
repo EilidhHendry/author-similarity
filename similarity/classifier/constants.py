@@ -12,7 +12,6 @@ DATA_PATH = CLASSIFIER_ROOT + "data/"
 PLAINTEXT_PATH = DATA_PATH + "texts/"
 PREPROCESSED_PATH = DATA_PATH + "preprocessed/"
 CHUNKS_PATH = DATA_PATH + "chunks/"
-FINGERPRINTS_PATH = DATA_PATH + "fingerprint_output/"
 
 CHUNK_SIZE = 32000
 
