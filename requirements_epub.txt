@@ -8,6 +8,7 @@ celery==3.1.19
 chardet==2.3.0
 Cython==0.23.4
 Django==1.8.5
+django-celery==3.1.17
 EbookLib==0.15
 epub==0.5.2
 kombu==3.0.30

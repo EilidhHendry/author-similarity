@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djcelery',
     'similarity',
 )
 
@@ -110,3 +111,16 @@ try:
     from local_settings import *
 except ImportError:
     pass
+
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+USE_TZ = True
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'retrain': {
+        'task': 'similarity.tasks.periodic_retrain',
+        'schedule': timedelta(minutes=10),
+    },
+}

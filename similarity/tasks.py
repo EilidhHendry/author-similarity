@@ -1,4 +1,7 @@
 from celery import Celery, task, shared_task
+from celery.task.schedules import crontab
+from celery.decorators import periodic_task
+
 from models import Text, Classifier, Chunk
 import classifier.clean_up
 import classifier.chunk
@@ -6,7 +9,15 @@ import classifier.compute_fingerprint
 import classifier.svm
 
 app = Celery('author_similarity')
-from classifier import tasks
+
+@app.task
+def periodic_retrain():
+    print "Periodic classifier training"
+    system_classifier = Classifier.objects.first()
+    system_classifier_id = system_classifier.id
+    print "Classifier status: %s" % (system_classifier.status)
+    if (system_classifier.status == "untrained"):
+        train_classifier(system_classifier_id)
 
 @app.task
 def train_classifier(classifier_id):
@@ -48,6 +59,11 @@ def process_text(text_id):
         print "Saved chunk: %s" % (str(chunk_number))
         chunk_number+=1
     print "Processed the text"
+
+    system_classifier = Classifier.objects.first()
+    system_classifier.status = "untrained"
+    system_classifier.save()
+
 
 @app.task
 def process_chunk(chunk_id, chunk_text):
