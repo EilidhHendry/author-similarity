@@ -12,10 +12,10 @@ def index(request):
         if form.is_valid():
             if form.cleaned_data.get('input_file'):
                 input_file = form.cleaned_data.get('input_file')
+                print type(input_file)
                 text = input_file.read()
             elif form.cleaned_data.get('text'):
-                unicode_text = form.cleaned_data.get('text')
-                text = unicode_text.encode('utf-8')
+                text = form.cleaned_data.get('text')
             return classify_text(text)
     else:
         form = InputForm(initial={'text': 'text here'})
@@ -31,7 +31,6 @@ def classify(request):
     return classify_text(text)
 
 def classify_text(text):
-    text = clean_up.clean_unicode(text)
     system_classifier = Classifier.objects.first()
     result = {}
     result = system_classifier.classify(text)

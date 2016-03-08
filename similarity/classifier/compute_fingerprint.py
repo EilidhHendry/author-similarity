@@ -1,14 +1,12 @@
 import constants
 import os
 import nltk
-import string
+import regex
 
 from util import tokenize_words, tokenize_sentences
 
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
-punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', '-', ';', '(', ')', '[', ']', '\\', '/', '`']
-
 
 def fingerprint_text(chunk):
     """
@@ -75,10 +73,10 @@ def analyze_text(input_chunk):
         results = {key: 0 for key in
                    ['avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation']}
 
-        chars = input_chunk.translate(None, string.whitespace)
-        chars_without_punc = chars.translate(None, string.punctuation)
+        chars = ''.join(input_chunk.split())
+        chars_without_punc = remove_punctuation(chars)
         words = tokenize_words(input_chunk)
-        words_without_punc = [word for word in words if not set(word).intersection(set(string.punctuation))]
+        words_without_punc = [word for word in words if remove_punctuation(word)]
         sentences = tokenize_sentences(input_chunk)
 
         word_count = len(words_without_punc)
@@ -86,7 +84,7 @@ def analyze_text(input_chunk):
         char_count_without_punc = len(chars_without_punc)
         sentence_count = len(sentences)
         vocab_count = len(set(w.lower() for w in words_without_punc))
-        punctuation_count = len([char for char in chars if set(char).intersection(set(punctuation_marks))])
+        punctuation_count = len([char for char in chars if regex.match(ur"\p{P}+", char)])
 
         if word_count > 0:
             results['avg_word_length'] = float(char_count_without_punc)/word_count
@@ -98,6 +96,8 @@ def analyze_text(input_chunk):
 
         return results
 
+def remove_punctuation(text):
+    return regex.sub(ur"\p{P}+", "", text)
 
 def number_syllables(word):
     if word.lower() in pronounciation_dict:
@@ -116,7 +116,7 @@ def avg_syllables(words):
     for word in words:
         clean_word = word.lower().strip()
         # ignore word if the word contains any punctuation or if digit
-        if not set(word).intersection(set(punctuation_marks)) and not word.isdigit():
+        if not regex.match(ur"\p{P}+", word) and not word.isdigit():
             syllables_in_word = number_syllables(clean_word)
             if syllables_in_word == -1:
                 not_in_dictionary += 1
@@ -154,7 +154,7 @@ def get_pos_counts(tagged_text, tag_list):
     # initialise dictionary with tag list as keys
     final_pos_distribution = {tag_to_field(key): 0 for key in tag_list}
 
-    length_tagged_text = len([word for (word, tag) in tagged_text if word not in string.punctuation])
+    length_tagged_text = len([word for (word, tag) in tagged_text if not regex.match(ur"\p{P}+", word)])
     if length_tagged_text == 0: return final_pos_distribution
 
     # create frequency distribution of tags in text
@@ -188,7 +188,7 @@ def get_function_word_distribution(tagged_text, word_list):
     # initialise dictionary with word list as keys
     word_list_dict = {key+'_relative_frequency': 0 for key in word_list}
 
-    length_tagged_text = len([word for (word, tag) in tagged_text if word not in string.punctuation])
+    length_tagged_text = len([word for (word, tag) in tagged_text if not regex.match(ur"\p{P}+", word)])
     if length_tagged_text == 0: return word_list_dict
 
     word_fd = nltk.FreqDist(word.lower() for (word, tag) in tagged_text if tag in taglist)
