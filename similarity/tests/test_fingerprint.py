@@ -4,6 +4,7 @@ import nltk
 
 import similarity.classifier.constants as constants
 import similarity.classifier.compute_fingerprint as compute_fingerprint
+import similarity.classifier.util as util
 
 from similarity.tests.test_data.seuss_test_results import seuss_result_dictionary
 
@@ -45,7 +46,7 @@ class FingerprintTest(unittest.TestCase):
             (test_text, 127.0/48)
         ]
         for test_sentence, result in avg_word_length_cases:
-            analyse_result_dict = compute_fingerprint.analyze_text(test_sentence)
+            analyse_result_dict = compute_fingerprint.analyze_text(util.tokenize_sentences(test_sentence))
             avg_word_length = analyse_result_dict['avg_word_length']
             self.assertEquals(avg_word_length, result, msg=(test_sentence, avg_word_length, '!=', result))
 
@@ -59,7 +60,7 @@ class FingerprintTest(unittest.TestCase):
             (test_text, 48.0/9)
         ]
         for test_sentence, result in avg_sentence_length_cases:
-            analyse_result_dict = compute_fingerprint.analyze_text(test_sentence)
+            analyse_result_dict = compute_fingerprint.analyze_text(util.tokenize_sentences(test_sentence))
             avg_sentence_length = analyse_result_dict['avg_sentence_length']
             self.assertEquals(avg_sentence_length, result, msg=(test_sentence, avg_sentence_length, '!=', result))
 
@@ -72,7 +73,7 @@ class FingerprintTest(unittest.TestCase):
             (test_text, 13.0/48)
         ]
         for test_sentence, result in test_sentences:
-            analyse_result_dict = compute_fingerprint.analyze_text(test_sentence)
+            analyse_result_dict = compute_fingerprint.analyze_text(util.tokenize_sentences(test_sentence))
             lexical_diversity = analyse_result_dict['lexical_diversity']
             self.assertEquals(lexical_diversity, result, msg=(test_sentence, lexical_diversity, '!=', result))
 
@@ -85,7 +86,7 @@ class FingerprintTest(unittest.TestCase):
             (test_text, 20.0/147)
         ]
         for test_sentence, result in test_sentences:
-            analyse_result_dict = compute_fingerprint.analyze_text(test_sentence)
+            analyse_result_dict = compute_fingerprint.analyze_text(util.tokenize_sentences(test_sentence))
             percent_punctuation = analyse_result_dict['percentage_punctuation']
             self.assertEquals(percent_punctuation, result, msg=(test_sentence, percent_punctuation, '!=', result))
 
@@ -106,12 +107,12 @@ class FingerprintTest(unittest.TestCase):
         # TODO: more sentences
         tag_list = ["NN", "DT", "VBD", "PRP", "VBP", "RB", "IN", "NNS", "CC", "NNP", "JJ", "VB"]
         test_sentences = [
-            ([("dog", "NN")],
+            ("dog",
              {key+"_pos_relative_frequency": 0 if key is not "NN" else 1.0 for key in tag_list}),
-            ([], {key+"_pos_relative_frequency": 0 for key in tag_list}),
-            ([('the', 'DT'), ('quick', 'NN'), ('brown', 'NN'), ('fox', 'NN'), ('jumped', 'VBD'), ('.', '.')],
+            ('', {key+"_pos_relative_frequency": 0 for key in tag_list}),
+            ('the quick brown fox jumped.',
              {"PRP_pos_relative_frequency": 0,
-              "NN_pos_relative_frequency": 3.0/5,
+              "NN_pos_relative_frequency": 2.0/5,
               "DT_pos_relative_frequency": 1.0/5,
               "VBP_pos_relative_frequency": 0,
               "RB_pos_relative_frequency": 0,
@@ -119,10 +120,10 @@ class FingerprintTest(unittest.TestCase):
               "NNS_pos_relative_frequency": 0,
               "CC_pos_relative_frequency": 0,
               "NNP_pos_relative_frequency": 0,
-              "JJ_pos_relative_frequency": 0,
+              "JJ_pos_relative_frequency": 1.0/5,
               "VB_pos_relative_frequency": 0,
               "VBD_pos_relative_frequency": 1.0/5}),
-            (nltk.pos_tag(compute_fingerprint.tokenize_words(test_text)),
+            (test_text,
              {"PRP_pos_relative_frequency": 12.0/48,
               "NN_pos_relative_frequency": 5.0/48,
               "DT_pos_relative_frequency": 3.0/48,
@@ -136,14 +137,15 @@ class FingerprintTest(unittest.TestCase):
               "VB_pos_relative_frequency": 1.0/48,
               "VBD_pos_relative_frequency": 0})
         ]
-        for tagged_test_sentence, result in test_sentences:
-            pos_freq_dis = compute_fingerprint.get_pos_counts(tagged_test_sentence, tag_list)
-            self.assertEquals(pos_freq_dis, result, msg=(tagged_test_sentence, pos_freq_dis, '!=', result))
+        for test_sentence, result in test_sentences:
+            pos_freq_dis = compute_fingerprint.get_pos_counts(nltk.pos_tag(util.tokenize_words(test_sentence)), tag_list)
+            print
+            self.assertEquals(pos_freq_dis, result, msg=(test_sentence, pos_freq_dis, '!=', result))
 
     def test_function_word_distribution(self):
         # TODO: more sentences
         test_sentences = [
-            ([("into", "IN"), ("the", "DET"), ("dog", "NN")],
+            ("into the dog",
              {"into_relative_frequency": 1.0/3,
                   "i_relative_frequency": 0,
                   "that_relative_frequency": 0,
@@ -151,14 +153,14 @@ class FingerprintTest(unittest.TestCase):
                   "you_relative_frequency": 0,
                   "and_relative_frequency": 0,
                   "them_relative_frequency": 0}),
-            ([], {"into_relative_frequency": 0,
+            ('', {"into_relative_frequency": 0,
                   "i_relative_frequency": 0,
                   "that_relative_frequency": 0,
                   "like_relative_frequency": 0,
                   "you_relative_frequency": 0,
                   "and_relative_frequency": 0,
                   "them_relative_frequency": 0}),
-            (nltk.pos_tag(compute_fingerprint.tokenize_words(test_text)), {
+            (test_text, {
                 "into_relative_frequency": 0,
                 "i_relative_frequency": 10.0/48,
                 "that_relative_frequency": 3.0/48,
@@ -168,9 +170,9 @@ class FingerprintTest(unittest.TestCase):
                 "them_relative_frequency": 1.0/48})
         ]
         tag_list = ["into", "i", "that", "like", "you", "and", "them"]
-        for tagged_test_sentence, result in test_sentences:
-            function_word_dist = compute_fingerprint.get_function_word_distribution(tagged_test_sentence, tag_list)
-            self.assertEquals(function_word_dist, result, msg=(tagged_test_sentence, function_word_dist, '!=', result))
+        for test_sentence, result in test_sentences:
+            function_word_dist = compute_fingerprint.get_function_word_distribution(nltk.pos_tag(util.tokenize_words(test_sentence)), tag_list)
+            self.assertEquals(function_word_dist, result, msg=(test_sentence, function_word_dist, '!=', result))
 
     def test_fingerprint_text(self):
         empty_result = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
@@ -185,7 +187,7 @@ class FingerprintTest(unittest.TestCase):
             result_list = []
             fingerprint_list=[]
 
-            fingerprint = compute_fingerprint.fingerprint_text(argument_dictionary['chunk'])
+            fingerprint = compute_fingerprint.fingerprint_text(util.tokenize_sentences(argument_dictionary['chunk']))
             for field in constants.CHUNK_MODEL_FINGERPRINT_FIELDS:
                 result_list.append(result_dictionary[field])
                 fingerprint_list.append(fingerprint[field])

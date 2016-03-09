@@ -10,15 +10,15 @@ pronounciation_dict = nltk.corpus.cmudict.dict()
 
 def fingerprint_text(chunk):
     """
-    :param chunk: takes input as string
+    :param chunk: takes list of lists (list of sentences containing words)
     :return: list containing author name plus floats representing fingerprint
     """
 
     # dictionary to return calculated fingerprints
     results = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
 
-    # tokenise the input text
-    words = tokenize_words(chunk)
+    # flatten the lists of sentences to get a list of words
+    words = [word for sentence in chunk for word in sentence]
 
     # find the length of the current chunk, if 0 return all 0s
     if len(words) == 0: return results
@@ -69,15 +69,14 @@ def fingerprint_text(chunk):
     return results
 
 
-def analyze_text(input_chunk):
+def analyze_text(sentences):
         results = {key: 0 for key in
                    ['avg_word_length', 'avg_sentence_length', 'lexical_diversity', 'percentage_punctuation']}
 
-        chars = ''.join(input_chunk.split())
+        words = [word for sentence in sentences for word in sentence]
+        chars = ''.join(words)
         chars_without_punc = remove_punctuation(chars)
-        words = tokenize_words(input_chunk)
         words_without_punc = [word for word in words if remove_punctuation(word)]
-        sentences = tokenize_sentences(input_chunk)
 
         word_count = len(words_without_punc)
         char_count_with_punc = len(chars)

@@ -5,11 +5,13 @@ import string
 import os
 import nltk
 import codecs
+import regex
 
 
 def generate_text_path(author, title):
     output_directory = constants.PLAINTEXT_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
     return output_directory
+
 
 def chunk_text(input_path):
 
@@ -34,34 +36,13 @@ def chunk_text(input_path):
 
                 if current_chunk_word_count == constants.CHUNK_SIZE:
 
-                    # first join some punctuation to the previous word (returns generator object)
-                    punctuation_joined_chunk = join_punctuation(current_chunk)
-
-                    # then convert list of words to string
-                    chunk = ' '.join(punctuation_joined_chunk)
-
-                    yield chunk
+                    yield current_chunk
 
                     # start over for the next chunk
                     current_chunk = []
                     current_chunk_word_count = 0
 
-        final_chunk = ' '.join(current_chunk)
-        yield final_chunk
-
-def join_punctuation(word_list):
-    # note only includes the punctuation marks you want to join to prev word
-    punctuation_marks = ['!', ',', '.', ':', '"', '\'', '?', ';']
-    iter_word_list = iter(word_list)
-    current_word = next(iter_word_list)
-
-    for next_word in iter_word_list:
-        if next_word in punctuation_marks:
-            current_word += next_word
-        else:
-            yield current_word
-            current_word = next_word
-    yield current_word
+        yield current_chunk
 
 
 def chunk_dir(root_path=constants.PREPROCESSED_PATH):
