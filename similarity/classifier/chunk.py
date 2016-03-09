@@ -4,6 +4,7 @@ from util import generate_directory_name, tokenize_sentences
 import string
 import os
 import nltk
+import codecs
 
 
 def generate_text_path(author, title):
@@ -12,11 +13,11 @@ def generate_text_path(author, title):
 
 def chunk_text(input_path):
 
-    with open(input_path) as in_file:
-        input_chunk = in_file.read()
+    with codecs.open(input_path, encoding="utf-8") as in_file:
+        input_file = in_file.read()
 
         # tokenise into sentences
-        sentences = tokenize_sentences(input_chunk)
+        sentences = tokenize_sentences(input_file)
 
         current_chunk = []
         current_chunk_word_count = 0

@@ -12,7 +12,6 @@ def index(request):
         if form.is_valid():
             if form.cleaned_data.get('input_file'):
                 input_file = form.cleaned_data.get('input_file')
-                print type(input_file)
                 text = input_file.read()
             elif form.cleaned_data.get('text'):
                 text = form.cleaned_data.get('text')
