@@ -22,6 +22,7 @@ python-dateutil==2.4.2
 python-docx==0.8.5
 python-pptx==0.5.8
 pytz==2015.6
+regex==2016.3.2
 scikit-learn==0.16.1
 scipy==0.16.0
 six==1.10.0
