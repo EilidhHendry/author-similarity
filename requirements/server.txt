@@ -8,7 +8,6 @@ gunicorn==19.4.5
 kombu==3.0.30
 nltk==3.1
 numpy==1.10.1
-pandas==0.17.0
 psycopg2==2.6.1
 python-dateutil==2.4.2
 pytz==2015.6

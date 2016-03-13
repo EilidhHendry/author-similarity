@@ -1,6 +1,5 @@
 __author__ = 'eilidhhendry'
 
-import pandas
 import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
 from sklearn.externals import joblib

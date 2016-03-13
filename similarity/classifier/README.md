@@ -15,4 +15,3 @@ python packages:
   sklearn
   numpy
   matplotlib
-  pandas
