@@ -1,3 +1,2 @@
-templates.js
-vendor.js
-vendor.css
+*.css
+*.js

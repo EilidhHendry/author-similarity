@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
         <title>***Title***</Title>
         {% load staticfiles %}
         <script type="text/javascript" src="{% static 'similarity/vendor.js' %}"></script>
@@ -12,13 +13,13 @@
         <form enctype="multipart/form-data" name="{{ form.form_name }}" method="post" action=".">
             {% csrf_token %}
             <div>
-                <label for="id_text"> Text:</label>
-                <textarea cols="40" id="id_text" name="text" rows="10"> </textarea>
+                <label for="text-input"> Text:</label>
+                <textarea cols="40" id="text-input" name="text" rows="10"> </textarea>
             </div>
 
             <div>
-                <label for="id_input_file">
-                <input id="id_input_file" name="input_file" type="file" />
+                <label for="file-input">
+                <input id="file-input" name="input_file" type="file" />
             </div>
 
             <div>
