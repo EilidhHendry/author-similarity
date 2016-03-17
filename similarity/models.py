@@ -25,6 +25,7 @@ class Author(models.Model):
 
         for key, value in average_chunk_fingerprint.items():
             average_chunk_fingerprint[key]=float(value)/chunks_length
+
         return average_chunk_fingerprint
 
 
@@ -79,6 +80,7 @@ class Chunk(models.Model):
         chunk_id = chunk.id
         import tasks
         tasks.process_chunk.delay(chunk_id, chunk_text)
+
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)
@@ -208,6 +210,14 @@ class Chunk(models.Model):
     JJR_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     UH_pos_relative_frequency      = models.FloatField(null=True, blank=True)
 
+def get_pos_groups(fingerprint_dict):
+    pos_category_dict = {key: 0 for key in classifier.constants.POS_TAG_CATEGORIES.keys()}
+    fingerprint_dict.update(pos_category_dict)
+    for pos_category, pos_list in classifier.constants.POS_TAG_CATEGORIES.items():
+        for field_name in pos_list:
+            print field_name
+            fingerprint_dict[pos_category]+=fingerprint_dict[field_name]
+    return fingerprint_dict
 
 CLASSIFIER_STATUS_CHOICES = (
     ('untrained', 'untrained'),
@@ -235,14 +245,15 @@ class Classifier(models.Model):
         chunk_name = "chunk_name"
         fingerprint = compute_fingerprint.fingerprint_text(text)
 
+
         author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
             average_fingerprint = author.get_average_child_chunk_fingerprint()
-            author_result['fingerprint'] = average_fingerprint
+            author_result['fingerprint'] = get_pos_groups(average_fingerprint)
 
         result = {}
-        result['fingerprint'] = fingerprint
+        result['fingerprint'] = get_pos_groups(fingerprint)
         result['input'] = text
         result['authors'] = author_results
         return result
