@@ -35,9 +35,9 @@ def train_svm(training_data, targets):
     try:
         #scale the input data
         scaled_training_data = scale(training_data)
-    except ValueError:
+    except ValueError as error:
         print 'no training data'
-        return None
+        print error
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
