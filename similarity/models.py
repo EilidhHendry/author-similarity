@@ -1,7 +1,7 @@
 from django.db import models
 
 import classifier.constants
-from classifier import svm, compute_fingerprint
+from classifier import svm, compute_fingerprint, chunk
 from classifier.util import generate_directory_name
 
 
@@ -52,11 +52,29 @@ class Text(models.Model):
 
     def save(self, *args, **kwargs):
         super(Text, self).save(*args, **kwargs)
-        text_id = self.id
 
+        print "Chunking text..."
+        chunk_number = 0
+        chunk_ids = []
+        chunk_texts = []
         import tasks
-        tasks.process_text.delay(text_id)
+        for chunk_text in chunk.chunk_text(self.text_file.path):
+            print "Creating chunk: %s" % (str(chunk_number))
+            new_chunk = Chunk(author=self.author, text=self, text_chunk_number=chunk_number)
+            new_chunk.save()
+            chunk_ids.append(new_chunk.id)
+            chunk_texts.append(chunk_text)
+            chunk_number+=1
 
+        system_classifier = Classifier.objects.first()
+        system_classifier.status = "untrained"
+        system_classifier.save()
+        print "Processed the text"
+
+        for (chunk_index, chunk_id) in enumerate(chunk_ids):
+            chunk_text = chunk_texts[chunk_index]
+            print "Saved chunk: with id %s" % (str(chunk_id))
+            tasks.process_chunk.delay(chunk_id, chunk_text)
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author')
@@ -72,15 +90,6 @@ class Chunk(models.Model):
 
     def get_fingerprint_list(self):
 	return [getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS]
-
-    @classmethod
-    def create(cls, text, chunk_number, chunk_text):
-        chunk = cls(author=text.author, text=text, text_chunk_number=chunk_number)
-        chunk.save()
-        chunk_id = chunk.id
-        import tasks
-        tasks.process_chunk.delay(chunk_id, chunk_text)
-
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)
@@ -244,7 +253,6 @@ class Classifier(models.Model):
         book_title = "title"
         chunk_name = "chunk_name"
         fingerprint = compute_fingerprint.fingerprint_text(text)
-
 
         author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:

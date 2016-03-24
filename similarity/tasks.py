@@ -35,44 +35,31 @@ def train_classifier(classifier_id):
         fingerprints.append(chunk.get_fingerprint_list())
     print "Training..."
     clf = classifier.svm.train_svm(fingerprints, authors)
-    print "Storing..."
-    classifier.svm.store_classifier(clf)
-
-    system_classifier.status = "trained"
-    system_classifier.save()
-    print "Trained the classifier"
-
-@app.task
-def process_text(text_id):
-    print "Processing the text, id: %s" % (str(text_id))
-    text = Text.objects.get(pk=text_id)
-
-    print "Cleaning text..."
-    classifier.clean_up.clean_file(text.text_file.path, text.author.name, text.name)
-    cleaned_text_path = text.create_preprocessed_path()
-
-    print "Chunking text..."
-    chunk_number = 0
-    for chunk_text in classifier.chunk.chunk_text(cleaned_text_path):
-        print "Creating chunk: %s" % (str(chunk_number))
-        chunk = Chunk.create(text, chunk_number, chunk_text)
-        print "Saved chunk: %s" % (str(chunk_number))
-        chunk_number+=1
-    print "Processed the text"
-
-    system_classifier = Classifier.objects.first()
-    system_classifier.status = "untrained"
-    system_classifier.save()
-
+    if clf:
+        print "Storing..."
+        classifier.svm.store_classifier(clf)
+        system_classifier.status = "trained"
+        system_classifier.save()
+        print "Trained the classifier"
+        return True
+    else:
+        system_classifier.status = "untrained"
+        system_classifier.save()
+        print "Failed to train classifier"
+        return False
 
 @app.task
 def process_chunk(chunk_id, chunk_text):
-    print "Processing the chunk, id: %s" % (str(chunk_id))
-    chunk = Chunk.objects.get(pk=chunk_id)
-
-    # set fingerprint, skip author column
-    print "Fingerprinting chunk..."
-    fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
-    for key in fingerprint.keys():
-        setattr(chunk, key, fingerprint[key])
-    chunk.save()
+    print "Processing the chunk with id: %s" % (str(chunk_id))
+    try:
+        chunk = Chunk.objects.get(pk=chunk_id)
+        print "Fingerprinting chunk"
+        fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
+        for key in fingerprint.keys():
+            setattr(chunk, key, fingerprint[key])
+        chunk.save()
+        print "processed chunk: %s" % (str(chunk_id))
+        return True
+    except Chunk.DoesNotExist:
+        print "FAILED TO FIND THE CHUNK!"
+        return False

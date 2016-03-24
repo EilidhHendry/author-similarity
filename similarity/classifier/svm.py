@@ -38,6 +38,7 @@ def train_svm(training_data, targets):
     except ValueError as error:
         print 'no training data'
         print error
+        return None
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
