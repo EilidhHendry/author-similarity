@@ -1,8 +1,12 @@
-import textract
 import os
 import timeit
 import constants
 import nltk
+
+try:
+    import textract
+except ImportError:
+    pass
 
 word_tokenizer = nltk.tokenize.WordPunctTokenizer()
 sentence_tokenizer=nltk.data.LazyLoader('tokenizers/punkt/english.pickle')
