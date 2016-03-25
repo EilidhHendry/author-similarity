@@ -57,7 +57,7 @@ class Text(models.Model):
         import tasks
         chunk_number = 0
         for chunk_text in chunk.chunk_text(self.text_file.path):
-            tasks.add_chunk.delay(author=self.author, text=self, text_chunk_number=chunk_number, chunk_text=chunk_text)
+            tasks.add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
             chunk_number+=1
 
         system_classifier = Classifier.objects.first()

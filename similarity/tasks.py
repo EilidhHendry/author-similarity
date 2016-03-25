@@ -2,7 +2,7 @@ from celery import Celery, task, shared_task
 from celery.task.schedules import crontab
 from celery.decorators import periodic_task
 
-from models import Text, Classifier, Chunk
+from models import Text, Classifier, Chunk, Author
 import classifier.clean_up
 import classifier.chunk
 import classifier.compute_fingerprint
@@ -49,8 +49,10 @@ def train_classifier(classifier_id):
         return False
 
 @app.task
-def add_chunk(author, text, text_chunk_number, chunk_text):
+def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     print "Creating chunk: %s" % (str(text_chunk_number))
+    text = Text.objects.get(pk=text_id)
+    author = Author.objects.get(pk=author_id)
     chunk = Chunk(author=author, text=text, text_chunk_number=text_chunk_number)
     print "Fingerprinting chunk"
     fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
