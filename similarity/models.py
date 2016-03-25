@@ -54,27 +54,16 @@ class Text(models.Model):
         super(Text, self).save(*args, **kwargs)
 
         print "Chunking text..."
-        chunk_number = 0
-        chunk_ids = []
-        chunk_texts = []
         import tasks
+        chunk_number = 0
         for chunk_text in chunk.chunk_text(self.text_file.path):
-            print "Creating chunk: %s" % (str(chunk_number))
-            new_chunk = Chunk(author=self.author, text=self, text_chunk_number=chunk_number)
-            new_chunk.save()
-            chunk_ids.append(new_chunk.id)
-            chunk_texts.append(chunk_text)
+            tasks.add_chunk.delay(author=self.author, text=self, text_chunk_number=chunk_number, chunk_text=chunk_text)
             chunk_number+=1
 
         system_classifier = Classifier.objects.first()
         system_classifier.status = "untrained"
         system_classifier.save()
         print "Processed the text"
-
-        for (chunk_index, chunk_id) in enumerate(chunk_ids):
-            chunk_text = chunk_texts[chunk_index]
-            print "Saved chunk: with id %s" % (str(chunk_id))
-            tasks.process_chunk.delay(chunk_id, chunk_text)
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author')
