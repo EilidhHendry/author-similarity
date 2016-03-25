@@ -80,11 +80,12 @@ def process_text_file(file_path):
         try:
             with open(file_path) as input_file:
                 text_content = input_file.read()
-                print "Managed to read file: ", file_path
-                if text_content: return file_path
+                if text_content:
+                    print "Managed to read file: ", file_path
+                    return file_path
         except IOError:
             print "Failed to read file: ", file_path
             return None
     else:
-        print 'Not supported file type: ', file_path
+        print 'Unsupported file type: ', file_path
         return None
