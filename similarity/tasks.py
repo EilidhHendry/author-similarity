@@ -49,17 +49,13 @@ def train_classifier(classifier_id):
         return False
 
 @app.task
-def process_chunk(chunk_id, chunk_text):
-    print "Processing the chunk with id: %s" % (str(chunk_id))
-    try:
-        chunk = Chunk.objects.get(pk=chunk_id)
-        print "Fingerprinting chunk"
-        fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
-        for key in fingerprint.keys():
-            setattr(chunk, key, fingerprint[key])
-        chunk.save()
-        print "processed chunk: %s" % (str(chunk_id))
-        return True
-    except Chunk.DoesNotExist:
-        print "FAILED TO FIND THE CHUNK!"
-        return False
+def add_chunk(author, text, text_chunk_number, chunk_text):
+    print "Creating chunk: %s" % (str(text_chunk_number))
+    chunk = Chunk(author=author, text=text, text_chunk_number=text_chunk_number)
+    print "Fingerprinting chunk"
+    fingerprint = classifier.compute_fingerprint.fingerprint_text(chunk_text)
+    for key in fingerprint.keys():
+        setattr(chunk, key, fingerprint[key])
+    chunk.save()
+    print "processed chunk with id %s" % (str(chunk.id))
+    return True
