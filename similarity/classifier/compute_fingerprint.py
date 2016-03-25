@@ -1,10 +1,6 @@
 import constants
-import os
 import nltk
 import regex
-
-from util import tokenize_words, tokenize_sentences
-
 
 pronounciation_dict = nltk.corpus.cmudict.dict()
 

@@ -1,17 +1,8 @@
 import constants
-from util import generate_directory_name, tokenize_sentences
+from util import tokenize_sentences
 
 import string
-import os
-import nltk
 import codecs
-import regex
-
-
-def generate_text_path(author, title):
-    output_directory = constants.PLAINTEXT_PATH + generate_directory_name(author) + "/" + generate_directory_name(title) + ".txt"
-    return output_directory
-
 
 def chunk_text(input_path):
 
@@ -43,21 +34,3 @@ def chunk_text(input_path):
                     current_chunk_word_count = 0
 
         yield current_chunk
-
-
-def chunk_dir(root_path=constants.PREPROCESSED_PATH):
-    # dir_name: the current dir looking in
-    # sub_dirs: list of sub-directories in the current directory.
-    # files: list of files in the current directory.
-    to_chunk = []
-    for dir_name, sub_dirs, files in os.walk(root_path):
-        for file in files:
-            if file[0] != '.':  # prevent hidden files e.g .DS_Store
-                path = os.path.join(dir_name, file)
-                to_chunk.append(path)
-
-    for current_file_path in to_chunk:
-        chunk_text(current_file_path)
-
-if __name__ == '__main__':
-    chunk_dir(constants.PREPROCESSED_PATH)

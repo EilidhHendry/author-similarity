@@ -10,7 +10,6 @@ if not("classifier" in current):
 
 DATA_PATH = CLASSIFIER_ROOT + "data/"
 PLAINTEXT_PATH = DATA_PATH + "texts/"
-PREPROCESSED_PATH = DATA_PATH + "preprocessed/"
 
 CHUNK_SIZE = 32000
 

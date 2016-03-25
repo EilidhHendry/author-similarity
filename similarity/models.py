@@ -44,12 +44,6 @@ class Text(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
-    def create_preprocessed_path(self):
-        author_name = generate_directory_name(self.author.name)
-        text_name = generate_directory_name(self.name)
-        path = classifier.constants.PREPROCESSED_PATH + "/".join([author_name, text_name])
-        return path
-
     def save(self, *args, **kwargs):
         super(Text, self).save(*args, **kwargs)
 
