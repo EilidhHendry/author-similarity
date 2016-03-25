@@ -1,4 +1,4 @@
-sudo apt-get install git nginx postgresql python-psycopg2 libpq-dev rabbitmq-server python-pip python-dev cython python-numpy python-scipy
+sudo apt-get install git nginx postgresql postgresql-contrib python-psycopg2 libpq-dev rabbitmq-server python-pip python-dev cython python-numpy python-scipy libxml2-dev libxslt-dev
 
 sudo pip install virtualenv
 
