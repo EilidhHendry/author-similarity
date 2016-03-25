@@ -1,18 +1,13 @@
 __author__ = 'eilidhhendry'
 
 import numpy
-from sklearn import preprocessing, cross_validation, svm, grid_search, metrics
+from sklearn import preprocessing, cross_validation, svm, grid_search
 from sklearn.externals import joblib
-from sklearn.feature_selection import RFE
-from sklearn.linear_model import RandomizedLogisticRegression
-from sklearn.pipeline import Pipeline
 
 # surpress sklearn warnings about
 import warnings
 
 import constants
-import util
-
 
 def scale(training_data):
     scaler = preprocessing.StandardScaler()
@@ -72,34 +67,19 @@ def find_classifier_accuracy(training_data, targets):
     :param training_data: list of lists of floats representing fingerprint
     :param targets: list of strings representing target values (author name)
     """
+    #Split the data into training and validation set
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(training_data, targets, test_size=0.5, random_state=0)
+
+    clf = train_svm(X_train, y_train)
+
+    print 'Finding accuracy...'
+    # find the accuracy of the classifier using 5-fold cross-validation
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-
-        assert len(training_data) == len(targets), \
-        'there are %r items in the target list and, but %r items in the list of training data' \
-        % (len(targets), len(training_data))
-
-        #scale the input data
-        scaled_training_data = scale(training_data)
-
-        #Split the data into training and validation set
-        X_train, X_test, y_train, y_test = cross_validation.train_test_split(scaled_training_data, targets, test_size=0.5, random_state=0)
-
-        c_range = numpy.logspace(-2,2,40)
-
-        print 'Tuning hyperparameters for precision'
-        param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
-
-        cv = 5
-        scoring = "f1_weighted"
-        clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
-        clf.fit(X_train, y_train)
-
-        # find the accuracy of the classifier using 5-fold cross-validation
         scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5)
 
-        # return the mean of the 5 folds
-        return scores.mean()
+    # return the mean of the 5 folds
+    return scores.mean()
 
 
 def classify_single_fingerprint(fingerprint_dictionary, clf):
@@ -120,46 +100,3 @@ def classify_single_fingerprint(fingerprint_dictionary, clf):
         }
         results.append(result)
     return results
-
-
-def classify_multiple_fingerprints(fingerprints_list, clf):
-    """
-    Takes a list of dictionaries representing fingerprints, returns list of predictions.
-    """
-    classifier_input = []
-    for fingerprint in fingerprints_list:
-        classifier_input.append(util.dictionary_to_list(fingerprint))
-
-    predicted_probabilities = clf.predict_proba(classifier_input)
-    return predicted_probabilities
-
-
-def evaluate_svm(classifier, test_data, test_targets):
-    """
-    Evaluates the svm on the task of author identification.
-    Compares actual targets and predicted targets to find precision, recall and f-score.
-    Also, uses k-fold cross-validation to find an accuracy for the classifier.
-
-    :param classifier: a trained classifier
-    :param test_data: matrix of numerical test data
-    :param test_targets: list of the target author for each row in matrix
-    """
-
-    # list of actual targets for the test set, and get predicted targets using classifier
-    actual_targets, predicted_targets = test_targets, classifier.predict(test_data)
-    # compare actual targets and predicated targets
-    print 'detailed class report:'
-    print metrics.classification_report(actual_targets, predicted_targets)
-
-    # use 5-fold cross validation to find average accuracy of classifier on test set
-    scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
-
-
-def svm_accuracy(classifier, test_data, test_targets):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        # find the accuracy of the classifier using 5-fold cross-validation
-        scores = cross_validation.cross_val_score(classifier, test_data, test_targets, cv=5)
-        # return the mean of the 5 folds
-        return scores.mean()
