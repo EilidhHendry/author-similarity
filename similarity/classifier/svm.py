@@ -3,6 +3,7 @@ __author__ = 'eilidhhendry'
 import numpy
 from sklearn import preprocessing, cross_validation, svm, grid_search
 from sklearn.externals import joblib
+import util
 
 # surpress sklearn warnings about
 import warnings

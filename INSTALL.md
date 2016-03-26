@@ -5,7 +5,7 @@ sudo pip install virtualenv
 git clone git@github.com:EilidhHendry/author-similarity.git
 cd author-similarity
 
-virtualenv —system-site-packages venv
+virtualenv --system-site-packages venv
 source venv/bin/activate
 pip install -r requirements/server.txt
 ./scripts/nltk_prep.sh
