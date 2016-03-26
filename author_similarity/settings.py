@@ -106,15 +106,16 @@ STATIC_URL = '/static/'
 # Media (used for uploads)
 MEDIA_ROOT = BASE_DIR + "/"
 
-# Try to load local settings
-try:
-    from local_settings import *
-except ImportError:
-    pass
+USE_TZ = True
+DEBUG = False
+ALLOWED_HOSTS = ['*']
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = 'json'
 
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
-USE_TZ = True
 
 from datetime import timedelta
 
@@ -124,3 +125,10 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(minutes=10),
     },
 }
+
+# Try to load local settings
+try:
+    from local_settings import *
+except ImportError:
+    pass
+
