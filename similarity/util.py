@@ -71,8 +71,9 @@ def process_text_file(file_path):
             output_file.write(text)
             print "Converted epub: ", output_path
             return output_path
-        except IOError:
+        except Exception as error:
             # TODO: textract raises own error so none isn't returned on try failure
+            print error
             print 'Failed to convert epub: ', file_path
             return None
     elif (extension == ""):
