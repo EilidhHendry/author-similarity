@@ -1,1 +1,1 @@
-./venv/bin/celery --purge -A author_similarity worker -l info
+./venv/bin/celery -A author_similarity worker -l info
