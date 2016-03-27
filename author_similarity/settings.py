@@ -112,15 +112,11 @@ ALLOWED_HOSTS = ['*']
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = 'json'
-
+CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 from datetime import timedelta
-
 CELERYBEAT_SCHEDULE = {
     'retrain': {
         'task': 'similarity.tasks.periodic_retrain',
