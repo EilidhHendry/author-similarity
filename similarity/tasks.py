@@ -8,6 +8,7 @@ import classifier.chunk
 import classifier.compute_fingerprint
 import classifier.svm
 
+
 app = Celery('author_similarity')
 
 @app.task
@@ -36,10 +37,7 @@ def train_classifier(classifier_id):
     print "Training..."
     clf = classifier.svm.train_svm(fingerprints, authors)
     if clf:
-        print "Storing..."
-        classifier.svm.store_classifier(clf)
-        system_classifier.status = "trained"
-        system_classifier.save()
+        store_trained_classifier.delay(clf)
         print "Trained the classifier"
         return True
     else:
@@ -57,5 +55,15 @@ def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     for key in fingerprint.keys():
         setattr(chunk, key, fingerprint[key])
     chunk.save()
-    print "processed chunk with id %s" % (str(chunk.id))
+    print "Processed chunk with id %s" % (str(chunk.id))
     return True
+
+
+from django.conf import settings
+if settings.DATABASES['default']:
+    if (settings.DATABASES['default']['HOST']=="localhost" or settings.DATABASES['default']['ENGINE']=="django.db.backends.sqlite3"):
+        print "Loading server tasks"
+        try:
+            from server_tasks import store_trained_classifier
+        except ImportError:
+            pass

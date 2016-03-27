@@ -39,18 +39,17 @@ def train_svm(training_data, targets):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
 
-        c_range = numpy.logspace(-2,2,40)
-
         print 'Tuning hyperparameters for precision'
+        c_range = numpy.logspace(-2,2,40)
         param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
         cv = 5
         scoring = "f1_weighted"
-
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
 
+        print "Fitting classifier"
         clf.fit(training_data, targets)
-        print "Trained classifier"
 
+        print "Trained classifier"
         return clf
 
 
