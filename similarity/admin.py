@@ -10,10 +10,9 @@ class ChunkInline(admin.StackedInline):
 class TextAdmin(admin.ModelAdmin):
     actions = ['process_text']
     def process_text(self, request, queryset):
-        import tasks
-        selected_texts = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        for text_id in selected_texts:
-            tasks.process_text.delay(text_id)
+        for selected_text in queryset:
+            selected_text.delete()
+            selected_text.save()
 
 admin.site.register(Text, TextAdmin)
 
