@@ -1,9 +1,11 @@
 #!/usr/bin/env python2.7
 import unittest
 import nltk
+import codecs
 
 import similarity.classifier.constants as constants
 import similarity.classifier.compute_fingerprint as compute_fingerprint
+import similarity.classifier.chunk as chunk
 import similarity.classifier.util as util
 
 from similarity.tests.test_data.seuss_test_results import seuss_result_dictionary
@@ -34,7 +36,7 @@ class FingerprintTest(unittest.TestCase):
               'I', 'do', 'not', 'like', 'green', 'eggs', 'and', 'ham', '.'])
         ]
         for test_sentence, result in test_sentences:
-            tokens = compute_fingerprint.tokenize_words(test_sentence)
+            tokens = util.tokenize_words(test_sentence)
             self.assertEquals(tokens, result, msg=(test_sentence, tokens, '!=', result))
 
     def test_average_word_length(self):
@@ -192,3 +194,13 @@ class FingerprintTest(unittest.TestCase):
                 result_list.append(result_dictionary[field])
                 fingerprint_list.append(fingerprint[field])
             self.assertEquals(fingerprint_list, result_list)
+
+    def test_fingerprint_chunk_integration(self):
+        fingerprints = []
+        for text_chunk in chunk.chunk_text('similarity/tests/test_data/seuss_test_book.txt'):
+            fingerprints.append(compute_fingerprint.fingerprint_text(text_chunk))
+        result_dict = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
+        for fingerprint in fingerprints:
+            for key, value in fingerprint.items():
+                result_dict[key]+=value
+        self.assertEquals(result_dict, seuss_result_dictionary)

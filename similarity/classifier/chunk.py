@@ -17,7 +17,7 @@ def chunk_text(input_path):
         for sentence in sentences:
             # TODO: Don't just remove non-ascii
             # add the sentence to the current chunk and remove non-ascii characters
-            current_chunk = current_chunk + sentence
+            current_chunk.append(sentence)
 
             for word in sentence:
 
