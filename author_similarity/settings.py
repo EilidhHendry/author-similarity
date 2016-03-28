@@ -124,6 +124,10 @@ CELERYBEAT_SCHEDULE = {
     },
 }
 
+CELERY_ROUTES = {
+    'similarity.tasks.store_trained_classifier': {'queue': 'filesystem'}
+}
+
 # Try to load local settings
 try:
     from local_settings import *
