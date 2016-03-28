@@ -3,7 +3,7 @@
 *.pyc
 *.sw*
 venv/
-db.sqlite3*
+*.sqlite3*
 celerybeat-schedule
 *.pid
 node_modules

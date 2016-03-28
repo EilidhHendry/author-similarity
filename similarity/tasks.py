@@ -1,6 +1,4 @@
 from celery import Celery, task, shared_task
-from celery.task.schedules import crontab
-from celery.decorators import periodic_task
 
 from models import Text, Classifier, Chunk, Author
 import classifier.clean_up
@@ -8,9 +6,7 @@ import classifier.chunk
 import classifier.compute_fingerprint
 import classifier.svm
 
-app = Celery('author_similarity')
-
-@app.task
+@shared_task
 def periodic_retrain():
     print "Periodic classifier training"
     system_classifier = Classifier.objects.first()
@@ -21,7 +17,7 @@ def periodic_retrain():
     else:
         return False
 
-@app.task
+@shared_task
 def train_classifier():
     print "Training the classifier"
     system_classifier = Classifier.objects.first()
@@ -48,8 +44,11 @@ def train_classifier():
         system_classifier.save()
         return False
 
-@app.task
+@shared_task(queue="filesystem")
 def store_trained_classifier(clf):
+    if (clf is None):
+        print "No classifier to store"
+        return None
     print "Storing classifier"
     system_classifier = Classifier.objects.first()
     classifier.svm.store_classifier(clf)
@@ -58,7 +57,7 @@ def store_trained_classifier(clf):
     print "Stored classifier"
     return True
 
-@app.task
+@shared_task
 def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     print "Creating chunk: %s" % (str(text_chunk_number))
     chunk = Chunk(author_id=author_id, text_id=text_id, text_chunk_number=text_chunk_number)
