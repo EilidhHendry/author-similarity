@@ -28,6 +28,7 @@ scikit-learn==0.16.1
 scipy==0.16.0
 six==1.10.0
 sklearn==0.0
+SQLAlchemy==1.0.12
 SpeechRecognition==3.3.1
 textract==1.4.0
 walkdir==0.3
