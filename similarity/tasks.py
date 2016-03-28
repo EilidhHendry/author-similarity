@@ -8,22 +8,23 @@ import classifier.chunk
 import classifier.compute_fingerprint
 import classifier.svm
 
-
 app = Celery('author_similarity')
 
 @app.task
 def periodic_retrain():
     print "Periodic classifier training"
     system_classifier = Classifier.objects.first()
-    system_classifier_id = system_classifier.id
     print "Classifier status: %s" % (system_classifier.status)
     if (system_classifier.status == "untrained"):
-        train_classifier(system_classifier_id)
+        train_classifier.delay()
+        return True
+    else:
+        return False
 
 @app.task
-def train_classifier(classifier_id):
-    print "Training the classifier, id: %s" % (str(classifier_id))
-    system_classifier = Classifier.objects.get(pk=classifier_id)
+def train_classifier():
+    print "Training the classifier"
+    system_classifier = Classifier.objects.first()
     system_classifier.status = "training"
     system_classifier.save()
 
@@ -34,17 +35,28 @@ def train_classifier(classifier_id):
     for chunk in chunks:
         authors.append(chunk.author.name)
         fingerprints.append(chunk.get_fingerprint_list())
+
     print "Training..."
     clf = classifier.svm.train_svm(fingerprints, authors)
     if clf:
-        store_trained_classifier.delay(clf)
         print "Trained the classifier"
+        store_trained_classifier.delay(clf)
         return True
     else:
+        print "Failed to train classifier"
         system_classifier.status = "untrained"
         system_classifier.save()
-        print "Failed to train classifier"
         return False
+
+@app.task
+def store_trained_classifier(clf):
+    print "Storing classifier"
+    system_classifier = Classifier.objects.first()
+    classifier.svm.store_classifier(clf)
+    system_classifier.status = "trained"
+    system_classifier.save()
+    print "Stored classifier"
+    return True
 
 @app.task
 def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
@@ -57,13 +69,3 @@ def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     chunk.save()
     print "Processed chunk with id %s" % (str(chunk.id))
     return True
-
-
-from django.conf import settings
-if settings.DATABASES['default']:
-    if (settings.DATABASES['default']['HOST']=="localhost" or settings.DATABASES['default']['ENGINE']=="django.db.backends.sqlite3"):
-        print "Loading server tasks"
-        try:
-            from server_tasks import store_trained_classifier
-        except ImportError:
-            pass

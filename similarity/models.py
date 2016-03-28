@@ -4,7 +4,6 @@ import classifier.constants
 from classifier import svm, compute_fingerprint, chunk
 from classifier.util import generate_directory_name
 
-
 class Author(models.Model):
     name = models.CharField(max_length=200)
 
@@ -47,11 +46,11 @@ class Text(models.Model):
     def save(self, *args, **kwargs):
         super(Text, self).save(*args, **kwargs)
 
+        from tasks import add_chunk
         print "Chunking text..."
-        import tasks
         chunk_number = 0
         for chunk_text in chunk.chunk_text(self.text_file.path):
-            tasks.add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
+            add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
             chunk_number+=1
 
         system_classifier = Classifier.objects.first()
@@ -226,8 +225,8 @@ class Classifier(models.Model):
 
     def train(self):
         classifier_id = self.id
-        import tasks
-        tasks.train_classifier.delay(classifier_id)
+        from tasks import train_classifier
+        train_classifier.delay()
 
     def classify(self, text):
         clf = svm.load_classifier()
