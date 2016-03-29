@@ -31,6 +31,7 @@ class TextInline(admin.StackedInline):
     model = Text
 
 class AuthorAdmin(admin.ModelAdmin):
+    search_fields = ['name']
     inlines = [
         TextInline,
     ]
