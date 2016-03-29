@@ -5,6 +5,7 @@ from classifier import svm
 
 class ChunkAdmin(admin.ModelAdmin):
     list_display = ['__unicode__', 'text', 'author']
+    list_filter = ['author', 'text']
 
 admin.site.register(Chunk, ChunkAdmin)
 
@@ -15,6 +16,7 @@ class ChunkInline(admin.StackedInline):
 class TextAdmin(admin.ModelAdmin):
     actions = ['process_text']
     list_display = ['__unicode__', 'author']
+    list_filter = ['author']
     def process_text(self, request, queryset):
         for selected_text in queryset:
             selected_text.delete()

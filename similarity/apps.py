@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 class SimilarityAppConfig(AppConfig):
 	name = "similarity"
-	verbose_name = "Similartiy app"
+	verbose_name = "Similarity"
 	run_ready = False
 
 	def ready(self):
