@@ -1,7 +1,6 @@
 #!/bin/bash
 
 trap "kill -TERM -$$" SIGINT
-touch celery.sqlite3
 ./scripts/celery_purge.sh
 ./venv/bin/python manage.py runserver &
 ./scripts/celery_beat.sh &
