@@ -110,7 +110,6 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-CELERY_RESULT_BACKEND = 'db+sqlite:///' + os.path.join(BASE_DIR,'celery.sqlite3')
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 from datetime import timedelta
