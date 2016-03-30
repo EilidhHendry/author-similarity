@@ -69,6 +69,8 @@ gulp.task('sass', function() {
 gulp.task('watch', function() {
     gulp.watch(node_modules_js, ['vendor-js']);
     gulp.watch(node_modules_css, ['vendor-css']);
+    gulp.watch(app_js, ['js']);
+    gulp.watch(app_scss, ['sass']);
 });
 
 // Default

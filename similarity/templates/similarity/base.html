@@ -1,31 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html ng-app>
     <head>
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
-        <title>***Title***</Title>
-        {% load staticfiles %}
-        <script type="text/javascript" src="{% static 'similarity/vendor.js' %}"></script>
-        <link rel='stylesheet' type='text/css' href="{% static 'similarity/vendor.css' %}" />
-        <link rel='stylesheet' type='text/css' href="{% static 'similarity/index.css' %}" />
+        <title>Author Similarity</title>
+            {% load staticfiles %}
+            <script type="text/javascript" src="{% static 'similarity/vendor.js' %}"></script>
+            <link rel='stylesheet' type='text/css' href="{% static 'similarity/vendor.css' %}" />
+            <link rel='stylesheet' type='text/css' href="{% static 'similarity/index.css' %}" />
     </head>
-    <body>
-        <form enctype="multipart/form-data" name="{{ form.form_name }}" method="post" action=".">
-            {% csrf_token %}
-            <div>
-                <label for="text-input"> Text:</label>
-                <textarea cols="40" id="text-input" name="text" rows="10"> </textarea>
-            </div>
+    <body ng-cloak>
+        <div id="header">
+            <h2 id="title">Author Similarity</h2>
+        </div>
 
-            <div>
-                <label for="file-input">
-                <input id="file-input" name="input_file" type="file" />
+        <div id="document-container">
+            <div id="document">
+                <div id="text" contenteditable="true" placeholder="Test"></div>
             </div>
+        </div>
 
-            <div>
-                <input type="submit" value="Submit">
+        <footer>
+            <div id="footer" layout="row" layout-align="space-between center">
+                <div>
+                    <input id="file-input" name="input_file" type="file" />
+                </div>
+                <div>
+                    <button>Classify</button>
+                </div>
             </div>
-        </form>
+        </footer>>
+
         <script type="text/javascript" src="{% static 'similarity/index.js' %}"></script>
     </body>
 </html>
