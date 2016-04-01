@@ -15,7 +15,7 @@ class ChunkInline(admin.StackedInline):
     model = Chunk
 
 class TextAdmin(admin.ModelAdmin):
-    actions = ['process_text']
+    actions = ['process_text', 'compute_average']
     list_display = ['__unicode__', 'author']
     list_filter = ['author']
     search_fields = ['name', 'author__name']
@@ -23,6 +23,9 @@ class TextAdmin(admin.ModelAdmin):
         for selected_text in queryset:
             selected_text.delete()
             selected_text.save()
+    def compute_average(self, request, queryset):
+        for selected_text in queryset:
+            selected_text.set_average_chunk()
 
 admin.site.register(Text, TextAdmin)
 
@@ -31,10 +34,14 @@ class TextInline(admin.StackedInline):
     model = Text
 
 class AuthorAdmin(admin.ModelAdmin):
+    actions = ['compute_average']
     search_fields = ['name']
     inlines = [
         TextInline,
     ]
+    def compute_average(self, request, queryset):
+        for selected_author in queryset:
+            selected_author.set_average_chunk()
 
 admin.site.register(Author, AuthorAdmin)
 

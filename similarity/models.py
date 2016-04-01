@@ -2,31 +2,23 @@ from django.db import models
 
 import classifier.constants
 from classifier import svm, compute_fingerprint, chunk
-from classifier.util import generate_directory_name
+from classifier.util import generate_directory_name, get_interesting_fields
 
 class Author(models.Model):
     name = models.CharField(max_length=200)
 
+    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_author', null=True, blank=True)
+
     def __unicode__(self):
         return u'%s' % (self.name)
 
-    def get_average_child_chunk_fingerprint(self):
-        from django.db.models import Q
+    def set_average_chunk(self):
         child_chunks = Chunk.objects.all().filter(author=self)
-        chunks_length = len(child_chunks)
-
-        average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
-
-        for chunk in child_chunks:
-            chunk_fingerprint_dict = chunk.get_fingerprint_dict()
-            for key, value in chunk_fingerprint_dict.items():
-                average_chunk_fingerprint[key]+=value
-
-        for key, value in average_chunk_fingerprint.items():
-            average_chunk_fingerprint[key]=float(value)/chunks_length
-
-        return average_chunk_fingerprint
-
+        average_fingerprint = get_average_fingerprint(child_chunks)
+        chunk = create_average_chunk(average_fingerprint, author=self)
+        self.average_chunk = chunk
+        self.average_chunk.save()
+        self.save()
 
 def create_text_upload_path(text, filename):
     author_name = generate_directory_name(text.author.name)
@@ -39,6 +31,8 @@ class Text(models.Model):
 
     name = models.CharField(max_length=200)
     text_file = models.FileField(upload_to=create_text_upload_path, default=None, null=True, blank=True)
+
+    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_text', null=True, blank=True)
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -58,14 +52,23 @@ class Text(models.Model):
         system_classifier.save()
         print "Processed the text"
 
-class Chunk(models.Model):
-    author = models.ForeignKey('Author')
+    def set_average_chunk(self):
+        child_chunks = Chunk.objects.all().filter(author=self.author, text=self)
+        average_fingerprint = get_average_fingerprint(child_chunks)
+        chunk = create_average_chunk(average_fingerprint, author=self.author, text=self)
+        self.average_chunk = chunk
+        self.average_chunk.save()
+        self.save()
 
-    text = models.ForeignKey('Text')
-    text_chunk_number = models.IntegerField(null=True)
+
+class Chunk(models.Model):
+    author = models.ForeignKey('Author', null=True, blank=True)
+
+    text = models.ForeignKey('Text', null=True, blank=True)
+    text_chunk_number = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s (%i)' % (self.text, self.text_chunk_number)
+        return u'%s' % (self.text)
 
     def get_fingerprint_dict(self):
         return {field_name: getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS }
@@ -201,12 +204,11 @@ class Chunk(models.Model):
     JJR_pos_relative_frequency     = models.FloatField(null=True, blank=True)
     UH_pos_relative_frequency      = models.FloatField(null=True, blank=True)
 
-def get_pos_groups(fingerprint_dict):
+def add_pos_groups(fingerprint_dict):
     pos_category_dict = {key: 0 for key in classifier.constants.POS_TAG_CATEGORIES.keys()}
     fingerprint_dict.update(pos_category_dict)
     for pos_category, pos_list in classifier.constants.POS_TAG_CATEGORIES.items():
         for field_name in pos_list:
-            print field_name
             fingerprint_dict[pos_category]+=fingerprint_dict[field_name]
     return fingerprint_dict
 
@@ -215,6 +217,28 @@ CLASSIFIER_STATUS_CHOICES = (
     ('trained', 'trained'),
     ('training', 'training'),
 )
+
+def get_average_fingerprint(chunks):
+    chunks_length = len(chunks)
+    if chunks_length == 0: return None
+
+    average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
+
+    for chunk in chunks:
+        chunk_fingerprint_dict = chunk.get_fingerprint_dict()
+        for key, value in chunk_fingerprint_dict.items():
+            average_chunk_fingerprint[key]+=value
+
+    for key, value in average_chunk_fingerprint.items():
+        average_chunk_fingerprint[key]=float(value)/chunks_length
+
+    return average_chunk_fingerprint
+
+def create_average_chunk(average_fingerprint, author=None, text=None):
+    chunk = Chunk.objects.create(author=author, text=text)
+    for key in average_fingerprint.keys():
+        setattr(chunk, key, average_fingerprint[key])
+    return chunk
 
 class Classifier(models.Model):
     last_trained = models.DateTimeField(auto_now=True, auto_now_add=False)
@@ -240,10 +264,11 @@ class Classifier(models.Model):
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
             average_fingerprint = author.get_average_child_chunk_fingerprint()
-            author_result['fingerprint'] = get_pos_groups(average_fingerprint)
+            average_pos_fingerprint = add_pos_groups(average_fingerprint)
+            author_result['fingerprint'] = get_interesting_fields(average_pos_fingerprint)
 
         result = {}
-        result['fingerprint'] = get_pos_groups(fingerprint)
+        result['fingerprint'] = get_interesting_fields(add_pos_groups(fingerprint))
         result['input'] = text
         result['authors'] = author_results
         return result

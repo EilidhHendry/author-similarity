@@ -42,3 +42,11 @@ def tokenize_sentences(input_chunk):
     :return: list of lists
     """
     return [tokenize_words(sentence) for sentence in sentence_tokenizer.tokenize(input_chunk)]
+
+def get_interesting_fields(fingerprint_dictionary):
+    interesting_fields = constants.CONDENSED_FINGERPRINT_FIELDS
+    result_dictionary = {}
+    for key, value in fingerprint_dictionary.iteritems():
+        if key in interesting_fields:
+            result_dictionary[key] = value
+    return result_dictionary
