@@ -15,7 +15,7 @@ class Author(models.Model):
     def set_average_chunk(self):
         child_chunks = Chunk.objects.all().filter(author=self)
         average_fingerprint = get_average_fingerprint(child_chunks)
-        chunk = create_average_chunk(average_fingerprint, author=self)
+        chunk = create_average_chunk(average_fingerprint)
         self.average_chunk = chunk
         self.average_chunk.save()
         self.save()
@@ -55,7 +55,7 @@ class Text(models.Model):
     def set_average_chunk(self):
         child_chunks = Chunk.objects.all().filter(author=self.author, text=self)
         average_fingerprint = get_average_fingerprint(child_chunks)
-        chunk = create_average_chunk(average_fingerprint, author=self.author, text=self)
+        chunk = create_average_chunk(average_fingerprint)
         self.average_chunk = chunk
         self.average_chunk.save()
         self.save()
@@ -234,8 +234,8 @@ def get_average_fingerprint(chunks):
 
     return average_chunk_fingerprint
 
-def create_average_chunk(average_fingerprint, author=None, text=None):
-    chunk = Chunk.objects.create(author=author, text=text)
+def create_average_chunk(average_fingerprint):
+    chunk = Chunk.objects.create()
     for key in average_fingerprint.keys():
         setattr(chunk, key, average_fingerprint[key])
     return chunk

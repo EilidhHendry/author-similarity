@@ -29,8 +29,9 @@ def train_classifier():
     authors = []
     fingerprints = []
     for chunk in chunks:
-        authors.append(chunk.author.name)
-        fingerprints.append(chunk.get_fingerprint_list())
+        if chunk.author:
+            authors.append(chunk.author.name)
+            fingerprints.append(chunk.get_fingerprint_list())
 
     print "Training..."
     clf = classifier.svm.train_svm(fingerprints, authors)
