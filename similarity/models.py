@@ -263,8 +263,7 @@ class Classifier(models.Model):
         author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
-            average_fingerprint = author.get_average_child_chunk_fingerprint()
-            average_pos_fingerprint = add_pos_groups(average_fingerprint)
+            average_pos_fingerprint = add_pos_groups(author.average_chunk)
             author_result['fingerprint'] = get_interesting_fields(average_pos_fingerprint)
 
         result = {}
