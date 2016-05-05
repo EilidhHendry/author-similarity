@@ -38,19 +38,24 @@ class Text(models.Model):
         return u'%s' % (self.name)
 
     def save(self, *args, **kwargs):
+        calculate_chunk = False
+        if not self.pk:
+            calculate_chunk = True
+
         super(Text, self).save(*args, **kwargs)
 
-        from tasks import add_chunk
-        print "Chunking text..."
-        chunk_number = 0
-        for chunk_text in chunk.chunk_text(self.text_file.path):
-            add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
-            chunk_number+=1
+        if calculate_chunk:
+            from tasks import add_chunk
+            print "Chunking text..."
+            chunk_number = 0
+            for chunk_text in chunk.chunk_text(self.text_file.path):
+                add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
+                chunk_number+=1
 
-        system_classifier = Classifier.objects.first()
-        system_classifier.status = "untrained"
-        system_classifier.save()
-        print "Processed the text"
+            system_classifier = Classifier.objects.first()
+            system_classifier.status = "untrained"
+            system_classifier.save()
+            print "Processed the text"
 
     def set_average_chunk(self):
         child_chunks = Chunk.objects.all().filter(author=self.author, text=self)
