@@ -257,22 +257,21 @@ class Classifier(models.Model):
         from tasks import train_classifier
         train_classifier.delay()
 
-    def classify(self, text):
+    def classify(self, input_text):
+        result = {}
+
+        fingerprint = compute_fingerprint.fingerprint_text(input_text)
+
         clf = svm.load_classifier()
-
-        author = "author"
-        book_title = "title"
-        chunk_name = "chunk_name"
-        fingerprint = compute_fingerprint.fingerprint_text(text)
-
         author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
-            average_pos_fingerprint = add_pos_groups(author.average_chunk)
-            author_result['fingerprint'] = get_interesting_fields(average_pos_fingerprint)
+            if author.average_chunk:
+                author_average_fingerprint = author.average_chunk.get_fingerprint_dict()
+                author_average_fingerprint = add_pos_groups(author_average_fingerprint)
+                author_result['fingerprint'] = get_interesting_fields(author_average_fingerprint)
 
-        result = {}
         result['fingerprint'] = get_interesting_fields(add_pos_groups(fingerprint))
-        result['input'] = text
+        result['input'] = input_text
         result['authors'] = author_results
         return result
