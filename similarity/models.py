@@ -13,9 +13,15 @@ class Author(models.Model):
         return u'%s' % (self.name)
 
     def set_average_chunk(self):
+        if (self.average_chunk):
+            print "Removing old average chunk"
+            self.average_chunk.delete()
+            self.average_chunk = None
         child_chunks = Chunk.objects.all().filter(author=self)
+        print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
+        chunk.author = self
         self.average_chunk = chunk
         self.average_chunk.save()
         self.save()
@@ -58,9 +64,16 @@ class Text(models.Model):
             print "Processed the text"
 
     def set_average_chunk(self):
-        child_chunks = Chunk.objects.all().filter(author=self.author, text=self)
+        if (self.average_chunk):
+            print "Removing old average chunk"
+            self.average_chunk.delete()
+            self.average_chunk = None
+        child_chunks = Chunk.objects.all().filter(text=self)
+        print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
+        chunk.text = self
+        print "saving average chunk"
         self.average_chunk = chunk
         self.average_chunk.save()
         self.save()
@@ -68,12 +81,16 @@ class Text(models.Model):
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author', null=True, blank=True)
-
     text = models.ForeignKey('Text', null=True, blank=True)
     text_chunk_number = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s' % (self.text)
+        if (self.text_chunk_number != None):
+            return u'%s - %s (%s)' % (self.text, self.author, self.text_chunk_number)
+        elif (self.text != None):
+            return u'%s - average' % (self.text)
+        elif (self.author != None):
+            return u'%s - average' % (self.author)
 
     def get_fingerprint_dict(self):
         return {field_name: getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS }
@@ -261,7 +278,6 @@ class Classifier(models.Model):
         result = {}
 
         fingerprint = compute_fingerprint.fingerprint_text(input_text)
-
         clf = svm.load_classifier()
         author_results = svm.classify_single_fingerprint(fingerprint, clf)
         for author_result in author_results:
