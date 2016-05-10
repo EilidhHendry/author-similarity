@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="author">
     <head>
         <meta charset='UTF-8' />
         <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
@@ -9,24 +9,24 @@
             <link rel='stylesheet' type='text/css' href="{% static 'similarity/vendor.css' %}" />
             <link rel='stylesheet' type='text/css' href="{% static 'similarity/index.css' %}" />
     </head>
-    <body ng-cloak>
+    <body ng-controller="MainController">
         <div id="header">
             <h2 id="title">Author Similarity</h2>
         </div>
 
         <div id="document-container">
             <div id="document">
-                <div id="text" contenteditable="true" placeholder="Test"></div>
+                <textarea id="text" ng-model="dataModel.text"></textarea>
             </div>
         </div>
 
         <footer>
             <div id="footer" layout="row" layout-align="space-between center">
                 <div>
-                    <input id="file-input" name="input_file" type="file" />
+                    <input id="file" type="file" />
                 </div>
                 <div>
-                    <button>Classify</button>
+                    <button ng-click="classify()">Classify</button>
                 </div>
             </div>
         </footer>>
