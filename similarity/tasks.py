@@ -25,7 +25,7 @@ def train_classifier():
     system_classifier.save()
 
     print "Fetching Chunks"
-    chunks = Chunk.objects.all()
+    chunks = Chunk.get_chunks()
     authors = []
     fingerprints = []
     for chunk in chunks:

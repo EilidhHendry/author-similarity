@@ -1,6 +1,6 @@
 from similarity.models import *
 from similarity.classifier import svm
-chunks = Chunk.objects.all()
+chunks = Chunk.get_chunks()
 authors = []
 fingerprints = []
 for chunk in chunks:

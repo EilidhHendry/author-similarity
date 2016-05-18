@@ -6,24 +6,31 @@ from classifier.util import generate_directory_name, get_interesting_fields
 
 class Author(models.Model):
     name = models.CharField(max_length=200)
-
     average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_author', null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % (self.name) or u''
 
     def set_average_chunk(self):
-        if (self.average_chunk):
-            print "Removing old average chunk"
-            self.average_chunk.delete()
+        if (self.average_chunk is not None):
+            print "removing old average chunk"
+            old_average_chunk = self.average_chunk
+            old_average_chunk.author = None
+            old_average_chunk.save()
             self.average_chunk = None
-        child_chunks = Chunk.objects.all().filter(author=self)
+            self.save()
+            old_average_chunk.delete()
+
+        child_chunks = Chunk.get_chunks().filter(author=self)
         print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
         chunk.author = self
+        print "saving average chunk"
+        chunk.save()
+        print "average chunk: %i" % (chunk.id)
         self.average_chunk = chunk
-        self.average_chunk.save()
+        print self
         self.save()
 
 def create_text_upload_path(text, filename):
@@ -34,23 +41,21 @@ def create_text_upload_path(text, filename):
 
 class Text(models.Model):
     author = models.ForeignKey('Author')
-
     name = models.CharField(max_length=200)
     text_file = models.FileField(upload_to=create_text_upload_path, default=None, null=True, blank=True)
-
     average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_text', null=True, blank=True)
 
     def __unicode__(self):
         return u'%s' % (self.name)
 
     def save(self, *args, **kwargs):
-        calculate_chunk = False
+        is_new_chunk = False
         if not self.pk:
-            calculate_chunk = True
+            is_new_chunk = True
 
         super(Text, self).save(*args, **kwargs)
 
-        if calculate_chunk:
+        if is_new_chunk:
             from tasks import add_chunk
             print "Chunking text..."
             chunk_number = 0
@@ -64,18 +69,26 @@ class Text(models.Model):
             print "Processed the text"
 
     def set_average_chunk(self):
-        if (self.average_chunk):
-            print "Removing old average chunk"
-            self.average_chunk.delete()
+        old_average_chunk = None
+        if (self.average_chunk is not None):
+            print "removing old average chunk"
+            old_average_chunk = self.average_chunk
+            old_average_chunk.text = None
+            old_average_chunk.save()
             self.average_chunk = None
-        child_chunks = Chunk.objects.all().filter(text=self)
+            self.save()
+            old_average_chunk.delete()
+
+        child_chunks = Chunk.get_chunks().filter(text=self)
         print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
         chunk.text = self
         print "saving average chunk"
+        chunk.save()
+        print "average chunk: %i" % (chunk.id)
         self.average_chunk = chunk
-        self.average_chunk.save()
+        print self
         self.save()
 
 
@@ -91,12 +104,17 @@ class Chunk(models.Model):
             return u'%s - average' % (self.text)
         elif (self.author != None):
             return u'%s - average' % (self.author)
+        return u''
 
     def get_fingerprint_dict(self):
         return {field_name: getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS }
 
     def get_fingerprint_list(self):
-	return [getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS]
+        return [getattr(self, field_name) for field_name in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS]
+
+    @classmethod
+    def get_chunks(cls):
+        return Chunk.objects.all().exclude(text_chunk_number__isnull=True)
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)

@@ -55,7 +55,7 @@ class ClassifierAdmin(admin.ModelAdmin):
 
     def find_accuracy(self, request, queryset):
         print "Fetching Chunks"
-        chunks = Chunk.objects.all()
+        chunks = Chunk.get_chunks()
         authors = []
         fingerprints = []
         for chunk in chunks:
