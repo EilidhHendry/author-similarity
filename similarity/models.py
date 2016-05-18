@@ -6,31 +6,21 @@ from classifier.util import generate_directory_name, get_interesting_fields
 
 class Author(models.Model):
     name = models.CharField(max_length=200)
-    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_author', null=True, blank=True)
+    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_author', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __unicode__(self):
-        return u'%s' % (self.name) or u''
+        return u'%s' % (self.name)
 
     def set_average_chunk(self):
         if (self.average_chunk is not None):
-            print "removing old average chunk"
-            old_average_chunk = self.average_chunk
-            old_average_chunk.author = None
-            old_average_chunk.save()
-            self.average_chunk = None
-            self.save()
-            old_average_chunk.delete()
-
+            self.average_chunk.delete()
         child_chunks = Chunk.get_chunks().filter(author=self)
         print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
         chunk.author = self
-        print "saving average chunk"
         chunk.save()
-        print "average chunk: %i" % (chunk.id)
         self.average_chunk = chunk
-        print self
         self.save()
 
 def create_text_upload_path(text, filename):
@@ -43,7 +33,7 @@ class Text(models.Model):
     author = models.ForeignKey('Author')
     name = models.CharField(max_length=200)
     text_file = models.FileField(upload_to=create_text_upload_path, default=None, null=True, blank=True)
-    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_text', null=True, blank=True)
+    average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_text', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -69,26 +59,15 @@ class Text(models.Model):
             print "Processed the text"
 
     def set_average_chunk(self):
-        old_average_chunk = None
         if (self.average_chunk is not None):
-            print "removing old average chunk"
-            old_average_chunk = self.average_chunk
-            old_average_chunk.text = None
-            old_average_chunk.save()
-            self.average_chunk = None
-            self.save()
-            old_average_chunk.delete()
-
+            self.average_chunk.delete()
         child_chunks = Chunk.get_chunks().filter(text=self)
         print "averaging %i chunks" % (len(child_chunks))
         average_fingerprint = get_average_fingerprint(child_chunks)
         chunk = create_average_chunk(average_fingerprint)
         chunk.text = self
-        print "saving average chunk"
         chunk.save()
-        print "average chunk: %i" % (chunk.id)
         self.average_chunk = chunk
-        print self
         self.save()
 
 
@@ -301,7 +280,6 @@ class Classifier(models.Model):
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
             if author.average_chunk:
-                author_average_fingerprint = author.average_chunk.get_fingerprint_dict()
                 author_average_fingerprint = add_pos_groups(author_average_fingerprint)
                 author_result['fingerprint'] = get_interesting_fields(author_average_fingerprint)
 
