@@ -11,17 +11,9 @@ class Author(models.Model):
     def __unicode__(self):
         return u'%s' % (self.name)
 
-    def set_average_chunk(self):
-        if (self.average_chunk is not None):
-            self.average_chunk.delete()
-        child_chunks = Chunk.get_chunks().filter(author=self)
-        print "averaging %i chunks" % (len(child_chunks))
-        average_fingerprint = get_average_fingerprint(child_chunks)
-        chunk = create_average_chunk(average_fingerprint)
-        chunk.author = self
-        chunk.save()
-        self.average_chunk = chunk
-        self.save()
+    def compute_own_average_chunk(self):
+        from tasks import create_average_chunk
+        create_average_chunk(self.id, type(self))
 
 def create_text_upload_path(text, filename):
     author_name = generate_directory_name(text.author.name)
@@ -58,18 +50,9 @@ class Text(models.Model):
             system_classifier.save()
             print "Processed the text"
 
-    def set_average_chunk(self):
-        if (self.average_chunk is not None):
-            self.average_chunk.delete()
-        child_chunks = Chunk.get_chunks().filter(text=self)
-        print "averaging %i chunks" % (len(child_chunks))
-        average_fingerprint = get_average_fingerprint(child_chunks)
-        chunk = create_average_chunk(average_fingerprint)
-        chunk.text = self
-        chunk.save()
-        self.average_chunk = chunk
-        self.save()
-
+    def compute_own_average_chunk(self):
+        from tasks import create_average_chunk
+        create_average_chunk(self.id, type(self))
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author', null=True, blank=True)
@@ -94,6 +77,23 @@ class Chunk(models.Model):
     @classmethod
     def get_chunks(cls):
         return Chunk.objects.all().exclude(text_chunk_number__isnull=True)
+
+    @classmethod
+    def get_average_fingerprint_of_chunks(cls, chunks):
+        chunks_length = len(chunks)
+        if chunks_length == 0: return None
+
+        average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
+
+        for chunk in chunks:
+            chunk_fingerprint_dict = chunk.get_fingerprint_dict()
+            for key, value in chunk_fingerprint_dict.items():
+                average_chunk_fingerprint[key]+=value
+
+        for key, value in average_chunk_fingerprint.items():
+            average_chunk_fingerprint[key]=float(value)/chunks_length
+
+        return average_chunk_fingerprint
 
     # fingerprint
     avg_word_length     = models.FloatField(null=True, blank=True)
@@ -237,27 +237,6 @@ CLASSIFIER_STATUS_CHOICES = (
     ('training', 'training'),
 )
 
-def get_average_fingerprint(chunks):
-    chunks_length = len(chunks)
-    if chunks_length == 0: return None
-
-    average_chunk_fingerprint = {key: 0 for key in classifier.constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
-
-    for chunk in chunks:
-        chunk_fingerprint_dict = chunk.get_fingerprint_dict()
-        for key, value in chunk_fingerprint_dict.items():
-            average_chunk_fingerprint[key]+=value
-
-    for key, value in average_chunk_fingerprint.items():
-        average_chunk_fingerprint[key]=float(value)/chunks_length
-
-    return average_chunk_fingerprint
-
-def create_average_chunk(average_fingerprint):
-    chunk = Chunk.objects.create()
-    for key in average_fingerprint.keys():
-        setattr(chunk, key, average_fingerprint[key])
-    return chunk
 
 class Classifier(models.Model):
     last_trained = models.DateTimeField(auto_now=True, auto_now_add=False)
@@ -280,6 +259,7 @@ class Classifier(models.Model):
         for author_result in author_results:
             author = Author.objects.get(name=author_result['label'])
             if author.average_chunk:
+                author_average_fingerprint = author.average_chunk.get_fingerprint_dict()
                 author_average_fingerprint = add_pos_groups(author_average_fingerprint)
                 author_result['fingerprint'] = get_interesting_fields(author_average_fingerprint)
 

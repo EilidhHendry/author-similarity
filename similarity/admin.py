@@ -25,7 +25,7 @@ class TextAdmin(admin.ModelAdmin):
             selected_text.save()
     def compute_average(self, request, queryset):
         for selected_text in queryset:
-            selected_text.set_average_chunk()
+            selected_text.compute_own_average_chunk()
 
 admin.site.register(Text, TextAdmin)
 
@@ -41,7 +41,7 @@ class AuthorAdmin(admin.ModelAdmin):
     ]
     def compute_average(self, request, queryset):
         for selected_author in queryset:
-            selected_author.set_average_chunk()
+            selected_author.compute_own_average_chunk()
 
 admin.site.register(Author, AuthorAdmin)
 
