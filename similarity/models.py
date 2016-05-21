@@ -5,9 +5,15 @@ from classifier import svm, compute_fingerprint, chunk
 from classifier.util import generate_directory_name, get_interesting_fields
 from celery import chord
 
+AUTHOR_STATUS_CHOICES = (
+    ('updated', 'updated'),
+    ('outdated', 'outdated'),
+)
+
 class Author(models.Model):
     name = models.CharField(max_length=200)
     average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_author', null=True, blank=True, on_delete=models.SET_NULL)
+    status = models.CharField(max_length=10, choices=AUTHOR_STATUS_CHOICES, default="updated")
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -35,8 +41,11 @@ class Text(models.Model):
         is_new_chunk = False
         if not self.pk:
             is_new_chunk = True
-
         super(Text, self).save(*args, **kwargs)
+
+        self.author.status = "outdated"
+        self.author.save()
+
         if not is_new_chunk:
             return
 

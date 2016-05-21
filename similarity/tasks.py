@@ -109,5 +109,14 @@ def create_author_average_chunk(author_id):
     chunk.author = author
     chunk.save()
     author.average_chunk = chunk
+    author.status = "updated"
     author.save()
+    return True
+
+@shared_task
+def periodic_author_average():
+    print "checking for outdated authors"
+    outdated_authors = Author.objects.filter(status="outdated")
+    for author in outdated_authors:
+        author.compute_own_average_chunk()
     return True

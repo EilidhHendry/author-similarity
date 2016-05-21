@@ -119,6 +119,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'similarity.tasks.periodic_retrain',
         'schedule': timedelta(minutes=10),
     },
+    'author_average': {
+        'task': 'similarity.tasks.periodic_author_average',
+        'schedule': timedelta(minutes=10),
+    },
 }
 
 CELERY_ROUTES = {
