@@ -13,8 +13,8 @@ class Author(models.Model):
         return u'%s' % (self.name)
 
     def compute_own_average_chunk(self):
-        from tasks import create_average_chunk
-        create_average_chunk(self.id, type(self))
+        from tasks import create_author_average_chunk
+        create_author_average_chunk(self.id)
 
 def create_text_upload_path(text, filename):
     author_name = generate_directory_name(text.author.name)
@@ -40,7 +40,7 @@ class Text(models.Model):
         if not is_new_chunk:
             return
 
-        from tasks import add_chunk, create_average_chunk
+        from tasks import add_chunk, create_text_average_chunk
         print "Chunking text..."
         chunk_number = 0
         chunk_tasks = []
@@ -49,7 +49,7 @@ class Text(models.Model):
             chunk_tasks.append(chunk_task)
             chunk_number+=1
 
-        average_task = create_average_chunk.si(self.id, type(self))
+        average_task = create_text_average_chunk.si(self.id)
         chunk_chord_res = chord(chunk_tasks)(average_task)
         chunk_chord_res.get()
 
@@ -59,8 +59,8 @@ class Text(models.Model):
         print "Processed the text"
 
     def compute_own_average_chunk(self):
-        from tasks import create_average_chunk
-        create_average_chunk(self.id, type(self))
+        from tasks import create_text_average_chunk
+        create_text_average_chunk(self.id)
 
 class Chunk(models.Model):
     author = models.ForeignKey('Author', null=True, blank=True)

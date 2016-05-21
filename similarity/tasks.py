@@ -71,16 +71,34 @@ def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     return True
 
 @shared_task
-def create_average_chunk(instance_id, instance_type):
-    instance = instance_type.objects.get(pk=instance_id)
-    if (instance.average_chunk is not None):
-        instance.average_chunk.delete()
+def create_text_average_chunk(text_id):
+    text = Text.objects.get(pk=text_id)
+    if (text.average_chunk is not None):
+        text.average_chunk.delete()
+
+    chunks = Chunk.get_chunks().filter(text=text)
+    print "averaging %i chunks" % (len(chunks))
+    average_fingerprint = Chunk.get_average_fingerprint_of_chunks(chunks)
+    chunk = Chunk.objects.create()
+    for key in average_fingerprint.keys():
+        setattr(chunk, key, average_fingerprint[key])
+
+    chunk.text = text
+    chunk.save()
+    text.average_chunk = chunk
+    text.save()
+    return True
+
+@shared_task
+def create_author_average_chunk(author_id):
+    author = Author.objects.get(pk=author_id)
+    if (author.average_chunk is not None):
+        author.average_chunk.delete()
 
     chunks = []
-    if isinstance(instance, Text):
-        chunks = Chunk.get_chunks().filter(text=instance)
-    elif isinstance(instance, Author):
-        chunks = Chunk.get_chunks().filter(author=instance)
+    texts = Text.objects.filter(author=author)
+    for text in texts:
+        chunks.append(text.average_chunk)
 
     print "averaging %i chunks" % (len(chunks))
     average_fingerprint = Chunk.get_average_fingerprint_of_chunks(chunks)
@@ -88,11 +106,8 @@ def create_average_chunk(instance_id, instance_type):
     for key in average_fingerprint.keys():
         setattr(chunk, key, average_fingerprint[key])
 
-    if isinstance(instance, Text):
-        chunk.text = instance
-    elif isinstance(instance, Author):
-        chunk.author = instance
+    chunk.author = author
     chunk.save()
-    instance.average_chunk = chunk
-    instance.save()
+    author.average_chunk = chunk
+    author.save()
     return True
