@@ -109,7 +109,8 @@ USE_TZ = True
 DEBUG = False
 ALLOWED_HOSTS = ['*']
 
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'redis://'
+CELERY_RESULT_BACKEND = 'redis://'
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
 from datetime import timedelta

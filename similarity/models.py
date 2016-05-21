@@ -3,6 +3,7 @@ from django.db import models
 import classifier.constants
 from classifier import svm, compute_fingerprint, chunk
 from classifier.util import generate_directory_name, get_interesting_fields
+from celery import chord
 
 class Author(models.Model):
     name = models.CharField(max_length=200)
@@ -36,19 +37,26 @@ class Text(models.Model):
             is_new_chunk = True
 
         super(Text, self).save(*args, **kwargs)
+        if not is_new_chunk:
+            return
 
-        if is_new_chunk:
-            from tasks import add_chunk
-            print "Chunking text..."
-            chunk_number = 0
-            for chunk_text in chunk.chunk_text(self.text_file.path):
-                add_chunk.delay(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
-                chunk_number+=1
+        from tasks import add_chunk, create_average_chunk
+        print "Chunking text..."
+        chunk_number = 0
+        chunk_tasks = []
+        for chunk_text in chunk.chunk_text(self.text_file.path):
+            chunk_task = add_chunk.s(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
+            chunk_tasks.append(chunk_task)
+            chunk_number+=1
 
-            system_classifier = Classifier.objects.first()
-            system_classifier.status = "untrained"
-            system_classifier.save()
-            print "Processed the text"
+        average_task = create_average_chunk.si(self.id, type(self))
+        chunk_chord_res = chord(chunk_tasks)(average_task)
+        chunk_chord_res.get()
+
+        system_classifier = Classifier.objects.first()
+        system_classifier.status = "untrained"
+        system_classifier.save()
+        print "Processed the text"
 
     def compute_own_average_chunk(self):
         from tasks import create_average_chunk

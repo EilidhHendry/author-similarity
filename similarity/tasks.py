@@ -95,3 +95,4 @@ def create_average_chunk(instance_id, instance_type):
     chunk.save()
     instance.average_chunk = chunk
     instance.save()
+    return True
