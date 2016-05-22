@@ -1,11 +1,10 @@
 #!/usr/bin/env python2.7
 import unittest
 import nltk
-import codecs
 
 import similarity.classifier.constants as constants
 import similarity.classifier.compute_fingerprint as compute_fingerprint
-import similarity.classifier.chunk as chunk
+import similarity.classifier.chunking as chunking
 import similarity.classifier.util as util
 
 from similarity.tests.test_data.seuss_test_results import seuss_result_dictionary
@@ -197,7 +196,7 @@ class FingerprintTest(unittest.TestCase):
 
     def test_fingerprint_chunk_integration(self):
         fingerprints = []
-        for text_chunk in chunk.chunk_text('similarity/tests/test_data/seuss_test_book.txt'):
+        for text_chunk in chunking.chunk_text('similarity/tests/test_data/seuss_test_book.txt'):
             fingerprints.append(compute_fingerprint.fingerprint_text(text_chunk))
         result_dict = {key: 0 for key in constants.CHUNK_MODEL_FINGERPRINT_FIELDS}
         for fingerprint in fingerprints:

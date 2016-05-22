@@ -2,7 +2,7 @@ __author__ = 'eilidhhendry'
 
 import collections
 
-import compute_fingerprint
+from similarity.classifier import compute_fingerprint
 
 test_file = 'syllable_test_data.txt'
 

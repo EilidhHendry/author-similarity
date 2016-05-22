@@ -1,7 +1,7 @@
 from django.db import models
 
 import classifier.constants
-from classifier import svm, compute_fingerprint, chunk
+from classifier import svm, compute_fingerprint, chunking
 from classifier.util import generate_directory_name, get_interesting_fields
 from celery import chord
 
@@ -16,7 +16,7 @@ class Author(models.Model):
     status = models.CharField(max_length=10, choices=AUTHOR_STATUS_CHOICES, default="updated")
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
     def compute_own_average_chunk(self):
         from tasks import create_author_average_chunk
@@ -35,7 +35,7 @@ class Text(models.Model):
     average_chunk = models.ForeignKey('Chunk', related_name='average_chunk_text', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return u'%s' % self.name
 
     def save(self, *args, **kwargs):
         is_new_chunk = False
@@ -53,7 +53,7 @@ class Text(models.Model):
         print "Chunking text..."
         chunk_number = 0
         chunk_tasks = []
-        for chunk_text in chunk.chunk_text(self.text_file.path):
+        for chunk_text in chunking.chunk_text(self.text_file.path):
             chunk_task = add_chunk.s(author_id=self.author.id, text_id=self.id, text_chunk_number=chunk_number, chunk_text=chunk_text)
             chunk_tasks.append(chunk_task)
             chunk_number+=1
@@ -77,12 +77,12 @@ class Chunk(models.Model):
     text_chunk_number = models.IntegerField(null=True, blank=True)
 
     def __unicode__(self):
-        if (self.text_chunk_number != None):
+        if self.text_chunk_number is not None:
             return u'%s - %s (%s)' % (self.text, self.author, self.text_chunk_number)
-        elif (self.text != None):
-            return u'%s - average' % (self.text)
-        elif (self.author != None):
-            return u'%s - average' % (self.author)
+        elif self.text is not None:
+            return u'%s - average' % self.text
+        elif self.author is not None:
+            return u'%s - average' % self.author
         return u''
 
     def get_fingerprint_dict(self):
@@ -263,7 +263,6 @@ class Classifier(models.Model):
         return u"Classifier"
 
     def train(self):
-        classifier_id = self.id
         from tasks import train_classifier
         train_classifier.delay()
 

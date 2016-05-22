@@ -1,19 +1,16 @@
 import os
-try:
-    import textract
-except ImportError:
-    pass
+import textract
 
 from similarity.models import Author, Text
 
 def load_dir(input_dir):
     from django.core.files import File
 
-    if not(input_dir): return None
+    if not input_dir: return None
 
-    if ("~" in input_dir):
+    if "~" in input_dir:
         input_dir = os.path.expanduser(input_dir)
-    print "loading files in directory: %s" % (input_dir)
+    print "loading files in directory: %s" % input_dir
 
     last_author = ''
     for current_dir, sub_dirs, files in os.walk(input_dir):
@@ -27,7 +24,7 @@ def load_dir(input_dir):
                 author = None
                 authors = Author.objects.filter(name=current_author)
                 if len(authors) > 0: author = authors[0]
-                if not(author):
+                if not author:
                     print 'Adding author to db: ', current_author
                     author = Author(name=current_author)
                     author.save()
@@ -36,14 +33,14 @@ def load_dir(input_dir):
 
             for text_file in files:
                 text_name = os.path.splitext(text_file)[0]  # drop the extension
-                if (text_name.startswith('.')): continue
+                if text_name.startswith('.'): continue
 
 
                 # get the file name and
                 # pass text file to text extraction to convert if epub
                 file_name = os.path.join(current_dir+'/'+text_file)
                 processed_text_path = process_text_file(file_name)
-                if not(processed_text_path): continue
+                if not processed_text_path: continue
 
                 text_file_txt = File(open(processed_text_path))
                 # check if text file already in db and avoid hidden files
@@ -59,9 +56,9 @@ def load_dir(input_dir):
 def process_text_file(file_path):
     file_name, extension = os.path.splitext(file_path)
     print file_name, extension
-    if (extension == ".txt"):
+    if extension == ".txt":
         return file_path
-    elif (extension == '.epub'):
+    elif extension == '.epub':
         print "Trying epub"
         try:
             text = textract.process(file_path)
@@ -76,8 +73,7 @@ def process_text_file(file_path):
             print error
             print 'Failed to convert epub: ', file_path
             return None
-    elif (extension == ""):
-        text_content = None
+    elif extension == "":
         try:
             with open(file_path) as input_file:
                 text_content = input_file.read()

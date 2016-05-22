@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
+from datetime import timedelta
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
@@ -23,10 +25,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'n*8h8067jyqcaxu8%!96o_#%-0!$3@mr=d7%2tb0tmz_$^1$nb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -105,15 +106,10 @@ STATIC_URL = '/static/'
 # Media (used for uploads)
 MEDIA_ROOT = BASE_DIR + "/"
 
-USE_TZ = True
-DEBUG = False
-ALLOWED_HOSTS = ['*']
-
 BROKER_URL = 'redis://'
 CELERY_RESULT_BACKEND = 'redis://'
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 
-from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
     'retrain': {
         'task': 'similarity.tasks.periodic_retrain',

@@ -27,9 +27,8 @@ def train_svm(training_data, targets):
     'there are %r items in the target list and, but %r items in the list of training data' \
     % (len(targets), len(training_data))
     print "Training classifier with %s chunks" % (str(len(training_data)))
-
     try:
-        #scale the input data
+        # scale the input data
         scaled_training_data = scale(training_data)
     except ValueError as error:
         print 'no training data'
@@ -47,7 +46,7 @@ def train_svm(training_data, targets):
         clf = grid_search.GridSearchCV(svm.SVC(probability=True), param_grid=param_grid, cv=cv, scoring=scoring)
 
         print "Fitting classifier"
-        clf.fit(training_data, targets)
+        clf.fit(scaled_training_data, targets)
 
         print "Trained classifier"
         return clf
@@ -68,15 +67,15 @@ def find_classifier_accuracy(training_data, targets):
     :param targets: list of strings representing target values (author name)
     """
     #Split the data into training and validation set
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(training_data, targets, test_size=0.5, random_state=0)
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(training_data, targets, test_size=0.5, random_state=0)
 
-    clf = train_svm(X_train, y_train)
+    clf = train_svm(x_train, y_train)
 
     print 'Finding accuracy...'
     # find the accuracy of the classifier using 5-fold cross-validation
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        scores = cross_validation.cross_val_score(clf, X_test, y_test, cv=5)
+        scores = cross_validation.cross_val_score(clf, x_test, y_test, cv=5)
 
     # return the mean of the 5 folds
     return scores.mean()

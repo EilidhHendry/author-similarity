@@ -1,8 +1,7 @@
-from celery import Celery, task, shared_task
+from celery import shared_task
 
 from models import Text, Classifier, Chunk, Author
-import classifier.clean_up
-import classifier.chunk
+import classifier.chunking
 import classifier.compute_fingerprint
 import classifier.svm
 
@@ -10,8 +9,8 @@ import classifier.svm
 def periodic_retrain():
     print "Periodic classifier training"
     system_classifier = Classifier.objects.first()
-    print "Classifier status: %s" % (system_classifier.status)
-    if (system_classifier.status == "untrained"):
+    print "Classifier status: %s" % system_classifier.status
+    if system_classifier.status == "untrained":
         train_classifier.delay()
         return True
     else:
@@ -47,7 +46,7 @@ def train_classifier():
 
 @shared_task(queue="filesystem")
 def store_trained_classifier(clf):
-    if (clf is None):
+    if clf is None:
         print "No classifier to store"
         return None
     print "Storing classifier"
@@ -73,7 +72,7 @@ def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
 @shared_task
 def create_text_average_chunk(text_id):
     text = Text.objects.get(pk=text_id)
-    if (text.average_chunk is not None):
+    if text.average_chunk is not None:
         text.average_chunk.delete()
 
     chunks = Chunk.get_chunks().filter(text=text)
@@ -92,7 +91,7 @@ def create_text_average_chunk(text_id):
 @shared_task
 def create_author_average_chunk(author_id):
     author = Author.objects.get(pk=author_id)
-    if (author.average_chunk is not None):
+    if author.average_chunk is not None:
         author.average_chunk.delete()
 
     chunks = []
