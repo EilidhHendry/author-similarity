@@ -5,6 +5,7 @@ import classifier.chunking
 import classifier.compute_fingerprint
 import classifier.svm
 
+
 @shared_task
 def periodic_retrain():
     print "Periodic classifier training"
@@ -15,6 +16,7 @@ def periodic_retrain():
         return True
     else:
         return False
+
 
 @shared_task
 def train_classifier():
@@ -44,6 +46,7 @@ def train_classifier():
         system_classifier.save()
         return False
 
+
 @shared_task(queue="filesystem")
 def store_trained_classifier(clf):
     if clf is None:
@@ -57,6 +60,7 @@ def store_trained_classifier(clf):
     print "Stored classifier"
     return True
 
+
 @shared_task
 def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     print "Creating chunk: %s" % (str(text_chunk_number))
@@ -68,6 +72,7 @@ def add_chunk(author_id, text_id, text_chunk_number, chunk_text):
     chunk.save()
     print "Processed chunk with id %s" % (str(chunk.id))
     return True
+
 
 @shared_task
 def create_text_average_chunk(text_id):
@@ -87,6 +92,7 @@ def create_text_average_chunk(text_id):
     text.average_chunk = chunk
     text.save()
     return True
+
 
 @shared_task
 def create_author_average_chunk(author_id):
@@ -111,6 +117,7 @@ def create_author_average_chunk(author_id):
     author.status = "updated"
     author.save()
     return True
+
 
 @shared_task
 def periodic_author_average():

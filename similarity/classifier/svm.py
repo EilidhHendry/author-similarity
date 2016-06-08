@@ -1,14 +1,11 @@
-__author__ = 'eilidhhendry'
-
 import numpy
+import util
+import warnings  # surpress sklearn warnings about
 from sklearn import preprocessing, cross_validation, svm, grid_search
 from sklearn.externals import joblib
-import util
-
-# surpress sklearn warnings about
-import warnings
 
 import constants
+
 
 def scale(training_data):
     scaler = preprocessing.StandardScaler()
@@ -24,8 +21,8 @@ def train_svm(training_data, targets):
     """
 
     assert len(training_data) == len(targets), \
-    'there are %r items in the target list and, but %r items in the list of training data' \
-    % (len(targets), len(training_data))
+        'there are %r items in the target list and, but %r items in the list of training data' \
+        % (len(targets), len(training_data))
     print "Training classifier with %s chunks" % (str(len(training_data)))
     try:
         # scale the input data
@@ -39,7 +36,7 @@ def train_svm(training_data, targets):
         warnings.simplefilter("ignore")
 
         print 'Tuning hyperparameters for precision'
-        c_range = numpy.logspace(-2,2,40)
+        c_range = numpy.logspace(-2, 2, 40)
         param_grid = [{'C': c_range, 'kernel': ['linear']}, {'C': c_range, 'gamma': [0.001, 0.0001], 'kernel': ['rbf']}]
         cv = 5
         scoring = "f1_weighted"
@@ -66,8 +63,9 @@ def find_classifier_accuracy(training_data, targets):
     :param training_data: list of lists of floats representing fingerprint
     :param targets: list of strings representing target values (author name)
     """
-    #Split the data into training and validation set
-    x_train, x_test, y_train, y_test = cross_validation.train_test_split(training_data, targets, test_size=0.5, random_state=0)
+    # Split the data into training and validation set
+    x_train, x_test, y_train, y_test = cross_validation.train_test_split(training_data, targets, test_size=0.5,
+                                                                         random_state=0)
 
     clf = train_svm(x_train, y_train)
 
@@ -95,7 +93,7 @@ def classify_single_fingerprint(fingerprint_dictionary, clf):
     for index in range(len(labels)):
         result = {
             "label": labels[index],
-            "probability":  predicted_probabilities[index]
+            "probability": predicted_probabilities[index]
         }
         results.append(result)
     return results

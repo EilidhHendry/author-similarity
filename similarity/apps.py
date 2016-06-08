@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
+
 class SimilarityAppConfig(AppConfig):
     name = "similarity"
     verbose_name = "Similarity"

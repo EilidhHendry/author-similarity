@@ -1,5 +1,3 @@
-__author__ = 'eilidhhendry'
-
 import collections
 
 from similarity.classifier import compute_fingerprint
@@ -39,10 +37,10 @@ def run_test():
         incorrect_list = incorrect_dict[actual_num_syllables]
         total_num_words = len(incorrect_list) + correct
 
-        print actual_num_syllables, ':', correct, ' / ', total_num_words, ' == ', (float(correct)*100)/total_num_words, '%'
+        print actual_num_syllables, ':', correct, ' / ', total_num_words, ' == ', (float(
+            correct) * 100) / total_num_words, '%'
         print 'incorrect values: ', incorrect_list
+
 
 if __name__ == '__main__':
     run_test()
-
-
